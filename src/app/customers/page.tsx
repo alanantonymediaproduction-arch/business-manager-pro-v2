@@ -380,7 +380,7 @@ export default function CustomersPage() {
 
             {/* Sticky Submit */}
             <div className="p-4 border-t border-white/10 shrink-0 bg-[#1c1c1c]">
-              <button type="submit" form="" onClick={handleSubmit} className="w-full bg-red-600 hover:bg-red-700 text-white p-3.5 rounded-xl font-medium text-base transition-colors disabled:opacity-50" disabled={isSubmitting}>
+              <button type="button" onClick={handleSubmit} className="w-full bg-red-600 hover:bg-red-700 text-white p-3.5 rounded-xl font-medium text-base transition-colors disabled:opacity-50" disabled={isSubmitting}>
                 {isSubmitting ? 'Saving...' : (editingId ? 'Update Customer' : 'Save Customer')}
               </button>
             </div>
