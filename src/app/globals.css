@@ -4,23 +4,23 @@
 
 @layer base {
   :root {
-    --background: 0 0% 7%; /* #111111 equivalent */
+    --background: 0 0% 7%;
     --foreground: 0 0% 100%;
     
-    --card: 0 0% 11%; /* #1c1c1c */
+    --card: 0 0% 11%;
     --card-foreground: 0 0% 100%;
     
     --popover: 0 0% 11%;
     --popover-foreground: 0 0% 100%;
     
-    --primary: 0 76% 56%; /* #e53935 */
+    --primary: 0 76% 56%;
     --primary-foreground: 0 0% 100%;
     
-    --secondary: 0 0% 15%; /* #262626 */
+    --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 100%;
     
-    --muted: 0 0% 15%; /* #262626 */
-    --muted-foreground: 0 0% 63%; /* #a0a0a0 */
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 63%;
     
     --accent: 0 0% 15%;
     --accent-foreground: 0 0% 100%;
@@ -28,19 +28,10 @@
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 16%; /* #2a2a2a */
+    --border: 0 0% 16%;
     --input: 0 0% 16%;
     --ring: 0 76% 56%;
     
     --radius: 0.5rem;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground antialiased;
   }
 }
