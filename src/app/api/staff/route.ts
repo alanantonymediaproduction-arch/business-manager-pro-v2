@@ -35,6 +35,57 @@ export async function GET() {
       });
     }
 
+    // Fetch all financial records for this user to calculate per-staff earnings
+    if (user) {
+      const { data: records } = await supabase
+        .from('financial_records')
+        .select('staff_name, type, amount, created_at')
+        .eq('user_id', user.id);
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const enrichedStaff = staffList.map(s => {
+        const staffRecords = (records || []).filter((r: { staff_name: string }) => r.staff_name === s.name);
+        
+        const totalCommission = staffRecords
+          .filter((r: { type: string }) => r.type === 'Commission')
+          .reduce((sum: number, r: { amount: string | number }) => sum + Number(r.amount), 0);
+
+        const todayCommission = staffRecords
+          .filter((r: { type: string, created_at: string }) => {
+            if (r.type !== 'Commission') return false;
+            const recDate = new Date(r.created_at);
+            recDate.setHours(0, 0, 0, 0);
+            return recDate.getTime() === today.getTime();
+          })
+          .reduce((sum: number, r: { amount: string | number }) => sum + Number(r.amount), 0);
+
+        const totalEarnings = staffRecords
+          .filter((r: { type: string }) => r.type === 'Earning')
+          .reduce((sum: number, r: { amount: string | number }) => sum + Number(r.amount), 0);
+
+        const todayEarnings = staffRecords
+          .filter((r: { type: string, created_at: string }) => {
+            if (r.type !== 'Earning') return false;
+            const recDate = new Date(r.created_at);
+            recDate.setHours(0, 0, 0, 0);
+            return recDate.getTime() === today.getTime();
+          })
+          .reduce((sum: number, r: { amount: string | number }) => sum + Number(r.amount), 0);
+
+        return {
+          ...s,
+          totalCommission,
+          todayCommission,
+          totalEarnings,
+          todayEarnings,
+        };
+      });
+
+      return NextResponse.json(enrichedStaff);
+    }
+
     return NextResponse.json(staffList);
   } catch (error) {
     console.error('Failed to fetch staff:', error);

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
-import { Plus, X, Pencil, Trash2, UserCircle2 } from 'lucide-react';
+import { Plus, X, Pencil, Trash2, UserCircle2, Banknote, TrendingUp } from 'lucide-react';
 
 interface Staff {
   id: string;
@@ -10,6 +10,10 @@ interface Staff {
   nationality: string | null;
   role: string;
   created_at: string;
+  totalCommission?: number;
+  todayCommission?: number;
+  totalEarnings?: number;
+  todayEarnings?: number;
 }
 
 export default function StaffPage() {
@@ -84,6 +88,11 @@ export default function StaffPage() {
     }
   };
 
+  // Calculate team totals
+  const teamTotalCommission = staff.reduce((sum, s) => sum + (s.totalCommission || 0), 0);
+  const teamTodayCommission = staff.reduce((sum, s) => sum + (s.todayCommission || 0), 0);
+  const teamTotalEarnings = staff.reduce((sum, s) => sum + (s.totalEarnings || 0), 0);
+
   return (
     <div className="min-h-screen bg-black text-white">
       <Navigation />
@@ -91,14 +100,41 @@ export default function StaffPage() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-semibold">Staff Profiles</h1>
-            <p className="text-gray-400 text-sm mt-1">Manage your team members and their roles.</p>
+            <p className="text-gray-400 text-sm mt-1">Manage your team and track their performance.</p>
           </div>
           <button onClick={() => openModal()} className="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-xl flex items-center justify-center gap-2 transition-colors font-medium">
             <Plus size={18} /> Create Staff Profile
           </button>
         </div>
 
-        {/* Staff Grid - Card Layout */}
+        {/* Team Summary KPIs */}
+        {staff.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-5">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-gray-400 text-sm font-medium">Team Total Earnings</span>
+                <Banknote size={16} className="text-green-500" />
+              </div>
+              <div className="text-2xl font-bold text-green-500">{teamTotalEarnings.toLocaleString()} AED</div>
+            </div>
+            <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-5">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-gray-400 text-sm font-medium">Team Total Commission</span>
+                <TrendingUp size={16} className="text-blue-400" />
+              </div>
+              <div className="text-2xl font-bold text-blue-400">{teamTotalCommission.toLocaleString()} AED</div>
+            </div>
+            <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-5">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-gray-400 text-sm font-medium">Today&apos;s Commissions</span>
+                <TrendingUp size={16} className="text-yellow-400" />
+              </div>
+              <div className="text-2xl font-bold text-yellow-400">{teamTodayCommission.toLocaleString()} AED</div>
+            </div>
+          </div>
+        )}
+
+        {/* Staff Cards */}
         {loading ? (
           <div className="p-8 text-center text-gray-400">Loading staff...</div>
         ) : staff.length === 0 ? (
@@ -114,6 +150,7 @@ export default function StaffPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {staff.map(s => (
               <div key={s.id} className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-colors group">
+                {/* Header Row */}
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${s.id === 'special-persona' ? 'bg-red-600/20 text-red-400' : 'bg-white/10 text-white'}`}>
@@ -137,7 +174,32 @@ export default function StaffPage() {
                   )}
                 </div>
                 
-                <div className="flex items-center justify-between text-sm">
+                {/* Financial Stats Grid */}
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div className="bg-black/30 rounded-xl p-3">
+                    <span className="text-xs text-gray-500 block mb-1">Total Earned</span>
+                    <span className="text-lg font-bold text-green-500">{(s.totalEarnings || 0).toLocaleString()}</span>
+                    <span className="text-xs text-gray-500 ml-1">AED</span>
+                  </div>
+                  <div className="bg-black/30 rounded-xl p-3">
+                    <span className="text-xs text-gray-500 block mb-1">Total Commission</span>
+                    <span className="text-lg font-bold text-blue-400">{(s.totalCommission || 0).toLocaleString()}</span>
+                    <span className="text-xs text-gray-500 ml-1">AED</span>
+                  </div>
+                  <div className="bg-black/30 rounded-xl p-3">
+                    <span className="text-xs text-gray-500 block mb-1">Today Earned</span>
+                    <span className="text-lg font-bold text-green-400">{(s.todayEarnings || 0).toLocaleString()}</span>
+                    <span className="text-xs text-gray-500 ml-1">AED</span>
+                  </div>
+                  <div className="bg-black/30 rounded-xl p-3">
+                    <span className="text-xs text-gray-500 block mb-1">Today Commission</span>
+                    <span className="text-lg font-bold text-yellow-400">{(s.todayCommission || 0).toLocaleString()}</span>
+                    <span className="text-xs text-gray-500 ml-1">AED</span>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="flex items-center justify-between text-sm pt-2 border-t border-white/5">
                   <span className="text-gray-500">
                     {s.nationality || 'No nationality'}
                   </span>
