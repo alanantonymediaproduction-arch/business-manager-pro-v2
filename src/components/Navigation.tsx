@@ -9,7 +9,8 @@ import {
   BadgeCheck, 
   ReceiptText, 
   BarChart3, 
-  Bell 
+  Bell,
+  LogOut
 } from 'lucide-react';
 
 export default function Navigation() {
@@ -21,7 +22,7 @@ export default function Navigation() {
         <div className="w-8 h-8 rounded-full bg-white/10 flex justify-center items-center overflow-hidden">
           <Image src="/next.svg" alt="User" width={32} height={32} style={{ opacity: 0.5 }} />
         </div>
-        <span className="text-lg font-semibold text-white">Business Manager Pro</span>
+        <span className="text-lg font-semibold text-white">BackupPlanPro</span>
       </div>
       
       <nav className="flex gap-6">
@@ -45,10 +46,15 @@ export default function Navigation() {
         </Link>
       </nav>
 
-      <div className="flex items-center">
+      <div className="flex items-center gap-2">
         <button className="text-gray-400 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors">
           <Bell size={20} />
         </button>
+        <form action="/auth/signout" method="post">
+          <button type="submit" className="flex items-center gap-2 text-sm px-4 py-2 rounded-md transition-colors text-gray-400 hover:text-white hover:bg-red-600/20 hover:border-red-500/50 border border-transparent">
+            <LogOut size={16} /> Logout
+          </button>
+        </form>
       </div>
     </header>
   );

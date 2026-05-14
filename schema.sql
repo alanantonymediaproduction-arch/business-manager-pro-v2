@@ -1,6 +1,14 @@
--- Supabase SQL Schema for Business Manager Pro v2
+-- Supabase SQL Schema for BackupPlanPro
 
--- Customers Table
+-- User Profiles (Linked to Supabase Auth)
+CREATE TABLE profiles (
+  id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
+  full_name TEXT,
+  custom_persona_name TEXT DEFAULT 'Deepa',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Customers Table (Shared Pool)
 CREATE TABLE customers (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
@@ -13,9 +21,19 @@ CREATE TABLE customers (
   appointment_date_time TIMESTAMP WITH TIME ZONE,
   is_repeat BOOLEAN DEFAULT false,
   call_notification TEXT CHECK (call_notification IN ('OK', 'Not OK')),
-  total_paid_amount NUMERIC DEFAULT 0,
-  amount_paid_to_staff NUMERIC DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Financial Records Table (Private Silos)
+CREATE TABLE financial_records (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  customer_id UUID REFERENCES customers(id) ON DELETE SET NULL,
+  type TEXT CHECK (type IN ('Earning', 'Commission', 'Expense')) NOT NULL,
+  amount NUMERIC NOT NULL,
+  description TEXT,
   staff_name TEXT,
+  is_special_persona BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -28,47 +46,27 @@ CREATE TABLE staff (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Earnings Table
-CREATE TABLE earnings (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  amount NUMERIC NOT NULL,
-  description TEXT,
-  linked_staff_name TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+-- Enable RLS
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE financial_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE staff ENABLE ROW LEVEL SECURITY;
 
--- Commissions Table
-CREATE TABLE commissions (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  amount NUMERIC NOT NULL,
-  description TEXT,
-  linked_staff_name TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+-- Shared Customer Pool Policies
+CREATE POLICY "Enable read access for all authenticated users" ON customers FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Enable insert for authenticated users" ON customers FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "Enable update for authenticated users" ON customers FOR UPDATE USING (auth.role() = 'authenticated');
 
--- Expenses Table
-CREATE TABLE expenses (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  amount NUMERIC NOT NULL,
-  category TEXT NOT NULL,
-  description TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+-- Private Financial Silos Policies
+CREATE POLICY "Users can view their own financial records" ON financial_records FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own financial records" ON financial_records FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own financial records" ON financial_records FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own financial records" ON financial_records FOR DELETE USING (auth.uid() = user_id);
 
--- Payments Table
-CREATE TABLE payments (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  amount NUMERIC NOT NULL,
-  due_date TIMESTAMP WITH TIME ZONE NOT NULL,
-  status TEXT DEFAULT 'pending',
-  description TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+-- Profile Policies
+CREATE POLICY "Users can view their own profile" ON profiles FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can update their own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
 
--- Fix Permission Errors (Disable RLS)
-ALTER TABLE customers DISABLE ROW LEVEL SECURITY;
-ALTER TABLE staff DISABLE ROW LEVEL SECURITY;
-ALTER TABLE earnings DISABLE ROW LEVEL SECURITY;
-ALTER TABLE commissions DISABLE ROW LEVEL SECURITY;
-ALTER TABLE expenses DISABLE ROW LEVEL SECURITY;
-ALTER TABLE payments DISABLE ROW LEVEL SECURITY;
+-- Staff Policies (Shared)
+CREATE POLICY "Enable read access for all authenticated users on staff" ON staff FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Enable insert for authenticated users on staff" ON staff FOR INSERT WITH CHECK (auth.role() = 'authenticated');

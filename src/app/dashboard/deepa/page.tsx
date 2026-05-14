@@ -100,21 +100,21 @@ export default function DeepaDashboard() {
               <span className="text-gray-400 text-sm font-medium">Your Earnings Today</span>
               <Banknote size={16} className="text-gray-400" />
             </div>
-            <div className="text-3xl font-semibold mb-2">${data.todayEarnings.toLocaleString()}</div>
+            <div className="text-3xl font-semibold mb-2">{data.todayEarnings.toLocaleString()} AED</div>
           </div>
           <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-6 flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <span className="text-gray-400 text-sm font-medium">Your Commissions</span>
               <Tag size={16} className="text-gray-400" />
             </div>
-            <div className="text-3xl font-semibold mb-2">${data.todayCommissions.toLocaleString()}</div>
+            <div className="text-3xl font-semibold mb-2">{data.todayCommissions.toLocaleString()} AED</div>
           </div>
           <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-6 flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <span className="text-gray-400 text-sm font-medium">Total Generated</span>
               <Building2 size={16} className="text-gray-400" />
             </div>
-            <div className="text-3xl font-semibold mb-2">${(data.totalEarnings / 1000).toFixed(1)}K</div>
+            <div className="text-3xl font-semibold mb-2">{(data.totalEarnings / 1000).toFixed(1)}K AED</div>
             <div className="text-xs flex items-center gap-1 text-gray-500">🗓 Lifetime</div>
           </div>
           <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-6 flex flex-col">
@@ -122,7 +122,7 @@ export default function DeepaDashboard() {
               <span className="text-gray-400 text-sm font-medium">Company Share</span>
               <TrendingUp size={16} className="text-gray-400" />
             </div>
-            <div className="text-3xl font-semibold mb-2">${(data.companyShare || 0).toLocaleString()}</div>
+            <div className="text-3xl font-semibold mb-2">{(data.companyShare || 0).toLocaleString()} AED</div>
           </div>
         </div>
       </main>

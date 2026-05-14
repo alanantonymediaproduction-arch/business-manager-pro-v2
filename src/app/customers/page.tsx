@@ -133,15 +133,44 @@ export default function CustomersPage() {
     }
   };
 
+  const exportCSV = () => {
+    const headers = ['Name', 'Number', 'Staff Assigned', 'Total Paid (AED)', 'Paid to Staff (AED)', 'Created At'];
+    const csvContent = [
+      headers.join(','),
+      ...customers.map(c => [
+        `"${c.name}"`, 
+        `"${c.number}"`, 
+        `"${c.staff_name || ''}"`, 
+        c.total_paid_amount || 0, 
+        c.amount_paid_to_staff || 0,
+        new Date(c.created_at).toLocaleDateString()
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `customers_export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="min-h-screen bg-black text-white">
       <Navigation />
       <main className="p-8 max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-semibold">Customers</h1>
-          <button onClick={() => openModal()} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
-            <Plus size={16} /> Add Customer
-          </button>
+          <div className="flex gap-4">
+            <button onClick={exportCSV} className="bg-[#1c1c1c] border border-white/10 hover:bg-white/5 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+              Download CSV
+            </button>
+            <button onClick={() => openModal()} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+              <Plus size={16} /> Add Customer
+            </button>
+          </div>
         </div>
 
         <div className="bg-[#111] border border-white/10 rounded-2xl overflow-x-auto">

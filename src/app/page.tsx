@@ -105,7 +105,7 @@ export default function Dashboard() {
               <span className="text-gray-400 text-sm font-medium">Today Earnings</span>
               <Banknote size={16} className="text-gray-400" />
             </div>
-            <div className="text-3xl font-semibold mb-2">${data.todayEarnings.toLocaleString()}</div>
+            <div className="text-3xl font-semibold mb-2">{data.todayEarnings.toLocaleString()} AED</div>
             <div className="text-xs flex items-center gap-1 text-green-500">
               <TrendingUp size={12} /> <span>+14.5%</span>
             </div>
@@ -115,7 +115,7 @@ export default function Dashboard() {
               <span className="text-gray-400 text-sm font-medium">Today Commissions</span>
               <Tag size={16} className="text-gray-400" />
             </div>
-            <div className="text-3xl font-semibold mb-2">${data.todayCommissions.toLocaleString()}</div>
+            <div className="text-3xl font-semibold mb-2">{data.todayCommissions.toLocaleString()} AED</div>
             <div className="text-xs flex items-center gap-1 text-green-500">
               <TrendingUp size={12} /> <span>+5.2%</span>
             </div>
@@ -125,7 +125,7 @@ export default function Dashboard() {
               <span className="text-gray-400 text-sm font-medium">Total Earnings</span>
               <Building2 size={16} className="text-gray-400" />
             </div>
-            <div className="text-3xl font-semibold mb-2">${(data.totalEarnings / 1000).toFixed(1)}K</div>
+            <div className="text-3xl font-semibold mb-2">{(data.totalEarnings / 1000).toFixed(1)}K AED</div>
             <div className="text-xs flex items-center gap-1 text-gray-500">🗓 This Month</div>
           </div>
           <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-6 flex flex-col">
@@ -133,7 +133,7 @@ export default function Dashboard() {
               <span className="text-gray-400 text-sm font-medium">Total Commissions</span>
               <Trophy size={16} className="text-gray-400" />
             </div>
-            <div className="text-3xl font-semibold mb-2">${(data.totalCommissions / 1000).toFixed(1)}K</div>
+            <div className="text-3xl font-semibold mb-2">{(data.totalCommissions / 1000).toFixed(1)}K AED</div>
             <div className="text-xs flex items-center gap-1 text-gray-500">🗓 This Month</div>
           </div>
         </div>
@@ -167,7 +167,7 @@ export default function Dashboard() {
             <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-5 flex justify-between items-center">
               <div className="flex flex-col gap-1">
                 <span className="text-gray-400 text-sm font-bold text-blue-400">Company Share</span>
-                <span className="text-2xl font-semibold">${(data.companyShare || 0).toLocaleString()}</span>
+                <span className="text-2xl font-semibold">{data.companyShare.toLocaleString()} AED</span>
               </div>
               <div className="bg-white/10 w-10 h-10 rounded-lg flex justify-center items-center">
                 <TrendingUp size={20} className="text-white" />
@@ -176,7 +176,7 @@ export default function Dashboard() {
             <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-5 flex justify-between items-center">
               <div className="flex flex-col gap-1">
                 <span className="text-gray-400 text-sm">Today Expenses</span>
-                <span className="text-2xl font-semibold">${data.todayExpenses.toLocaleString()}</span>
+                <span className="text-2xl font-semibold">{data.todayExpenses.toLocaleString()} AED</span>
               </div>
               <div className="bg-white/10 w-10 h-10 rounded-lg flex justify-center items-center">
                 <ReceiptText size={20} className="text-white" />
