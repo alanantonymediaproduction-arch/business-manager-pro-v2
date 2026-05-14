@@ -13,7 +13,8 @@ import {
   Bell,
   LogOut,
   Settings,
-  Contact
+  Contact,
+  Globe
 } from 'lucide-react';
 
 export default function Navigation() {
@@ -63,6 +64,9 @@ export default function Navigation() {
         </Link>
         <Link href="/staff" className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md whitespace-nowrap transition-colors ${pathname === '/staff' ? 'text-white bg-white/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
           <Contact size={16} /> Staff
+        </Link>
+        <Link href="/online-services" className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md whitespace-nowrap transition-colors ${pathname === '/online-services' ? 'text-white bg-purple-600' : 'text-purple-400 hover:text-white hover:bg-purple-600/50'}`}>
+          <Globe size={16} /> Online
         </Link>
         <Link href="/settings" className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md whitespace-nowrap transition-colors ${pathname === '/settings' ? 'text-white bg-white/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
           <Settings size={16} /> Settings

@@ -16,73 +16,75 @@ export async function GET(request: Request) {
     const endOfDay = new Date();
     endOfDay.setHours(23, 59, 59, 999);
 
-    // Fetch financial records exclusively for this user (RLS enforces this automatically)
-    // We filter by is_special_persona to isolate the dynamic persona data from general data
+    // Fetch financial records
     const { data: financialRecords, error: finError } = await supabase
       .from('financial_records')
       .select('*')
       .eq('is_special_persona', fetchSpecialPersona);
 
     if (finError) throw finError;
-
     const safeRecords = financialRecords || [];
 
-    // Calculate metrics
-    let todayEarnings = 0;
-    let totalEarnings = 0;
-    let todayCommissions = 0;
-    let totalCommissions = 0;
-    let todayExpenses = 0;
-    let totalExpenses = 0;
-
+    let todayEarnings = 0, totalEarnings = 0;
+    let todayCommissions = 0, totalCommissions = 0;
+    let todayExpenses = 0, totalExpenses = 0;
     const chartDataMap: Record<string, number> = {};
 
     safeRecords.forEach(record => {
       const recordDate = new Date(record.created_at);
       const isToday = recordDate >= startOfDay && recordDate <= endOfDay;
       const amount = Number(record.amount);
-      const isEarning = record.type === 'Earning';
-      const isCommission = record.type === 'Commission';
-      const isExpense = record.type === 'Expense';
 
-      if (isEarning) {
+      if (record.type === 'Earning') {
         totalEarnings += amount;
         if (isToday) todayEarnings += amount;
       }
-      if (isCommission) {
+      if (record.type === 'Commission') {
         totalCommissions += amount;
         if (isToday) todayCommissions += amount;
       }
-      if (isExpense) {
+      if (record.type === 'Expense') {
         totalExpenses += amount;
         if (isToday) todayExpenses += amount;
       }
 
-      // Chart Data Calculation
       const dayKey = recordDate.toLocaleDateString('en-US', { weekday: 'short' });
       if (!chartDataMap[dayKey]) chartDataMap[dayKey] = 0;
-      if (isEarning) chartDataMap[dayKey] += amount;
-      if (isCommission) chartDataMap[dayKey] -= amount; // Net Company Share for that day
+      if (record.type === 'Earning') chartDataMap[dayKey] += amount;
+      if (record.type === 'Commission') chartDataMap[dayKey] -= amount;
     });
 
     const companyShare = totalEarnings - totalCommissions;
     const netProfit = companyShare - totalExpenses;
+    const chartData = Object.keys(chartDataMap).map(key => ({ name: key, value: chartDataMap[key] })).slice(-7);
 
-    const chartData = Object.keys(chartDataMap).map(key => ({
-      name: key,
-      value: chartDataMap[key]
-    })).slice(-7); // Get last 7 days roughly
+    // Customer stats (only for main dashboard)
+    let totalCustomers = 0, repeatCustomers = 0, malluCustomers = 0;
+    let onlineEarnings = 0, onlineSessions = 0;
+
+    if (!fetchSpecialPersona) {
+      const { count: custCount } = await supabase.from('customers').select('*', { count: 'exact', head: true });
+      totalCustomers = custCount || 0;
+
+      const { count: repeatCount } = await supabase.from('customers').select('*', { count: 'exact', head: true }).eq('is_repeat', true);
+      repeatCustomers = repeatCount || 0;
+
+      const { count: malluCount } = await supabase.from('customers').select('*', { count: 'exact', head: true }).eq('is_mallu', true);
+      malluCustomers = malluCount || 0;
+
+      // Online services stats
+      const { data: onlineData } = await supabase.from('online_services').select('amount').eq('user_id', user.id);
+      if (onlineData) {
+        onlineSessions = onlineData.length;
+        onlineEarnings = onlineData.reduce((sum, r) => sum + Number(r.amount), 0);
+      }
+    }
 
     return NextResponse.json({
-      todayEarnings,
-      todayCommissions,
-      totalEarnings,
-      totalCommissions,
-      companyShare,
-      todayExpenses,
-      pendingPayments: 0,
-      netProfit,
-      chartData
+      todayEarnings, todayCommissions, totalEarnings, totalCommissions,
+      companyShare, todayExpenses, pendingPayments: 0, netProfit, chartData,
+      totalCustomers, repeatCustomers, malluCustomers,
+      onlineEarnings, onlineSessions
     });
   } catch (error) {
     console.error('Failed to fetch dashboard data:', error);

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Banknote, Tag, Building2, Trophy, TrendingUp, MoreVertical, Plus, Hourglass, ReceiptText, X } from 'lucide-react';
+import { Search, Banknote, Tag, Building2, Trophy, TrendingUp, MoreVertical, Plus, Hourglass, ReceiptText, X, Users, Globe, RefreshCw } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import Navigation from '@/components/Navigation';
 
@@ -15,6 +15,11 @@ interface DashboardData {
   companyShare: number;
   netProfit: number;
   chartData: { name: string; value: number }[];
+  totalCustomers: number;
+  repeatCustomers: number;
+  malluCustomers: number;
+  onlineEarnings: number;
+  onlineSessions: number;
 }
 
 export default function Dashboard() {
@@ -86,15 +91,11 @@ export default function Dashboard() {
     <div className="min-h-screen bg-black text-white">
       <Navigation />
 
-      <main className="p-8 max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
+      <main className="p-4 md:p-8 max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-semibold mb-1">Welcome back</h1>
             <p className="text-gray-400 text-sm">Here&apos;s your high-level overview for today.</p>
-          </div>
-          <div className="flex items-center bg-[#1c1c1c] border border-white/10 rounded-lg px-4 py-2 w-full md:w-64">
-            <Search size={16} className="text-gray-400 mr-2" />
-            <input type="text" placeholder="Quick search..." className="bg-transparent border-none text-white w-full text-sm focus:outline-none" />
           </div>
         </div>
 
@@ -189,6 +190,43 @@ export default function Dashboard() {
               </div>
               <div className="bg-white/10 w-10 h-10 rounded-lg flex justify-center items-center">
                 <Hourglass size={20} className="text-white" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Customer & Online Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {/* Physical Customers */}
+          <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-5">
+            <h3 className="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2"><Users size={16} className="text-blue-400" /> Physical Customers</h3>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="text-center">
+                <div className="text-2xl font-bold">{data.totalCustomers || 0}</div>
+                <div className="text-xs text-gray-500 mt-1">Total</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-400">{data.repeatCustomers || 0}</div>
+                <div className="text-xs text-gray-500 mt-1">Repeat</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-yellow-400">{data.malluCustomers || 0}</div>
+                <div className="text-xs text-gray-500 mt-1">Mallu</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Online Services */}
+          <div className="bg-[#1c1c1c] border border-purple-500/20 rounded-2xl p-5">
+            <h3 className="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2"><Globe size={16} className="text-purple-400" /> Online Services</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="text-center">
+                <div className="text-2xl font-bold">{data.onlineSessions || 0}</div>
+                <div className="text-xs text-gray-500 mt-1">Sessions</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-400">{(data.onlineEarnings || 0).toLocaleString()}</div>
+                <div className="text-xs text-gray-500 mt-1">Earnings (AED)</div>
               </div>
             </div>
           </div>

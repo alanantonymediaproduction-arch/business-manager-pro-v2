@@ -36,11 +36,15 @@ export async function PUT(request: Request) {
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
-    const { custom_persona_name } = body;
+    const { custom_persona_name, admin_pin } = body;
+
+    const updateData: Record<string, string> = {};
+    if (custom_persona_name !== undefined) updateData.custom_persona_name = custom_persona_name;
+    if (admin_pin !== undefined) updateData.admin_pin = admin_pin;
 
     const { data: profile, error } = await supabase
       .from('profiles')
-      .update({ custom_persona_name })
+      .update(updateData)
       .eq('id', user.id)
       .select()
       .single();

@@ -2,12 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
-import { Plus, X, Pencil, Trash2, Search, Filter } from 'lucide-react';
+import AdminVerify from '@/components/AdminVerify';
+import { Plus, X, Pencil, Trash2, Search, Filter, MessageCircle, ArrowUpDown, Download } from 'lucide-react';
 
-interface Staff {
-  id: string;
-  name: string;
-}
+interface Staff { id: string; name: string; }
 
 interface Customer {
   id: string;
@@ -15,12 +13,14 @@ interface Customer {
   number: string;
   nationality: string | null;
   age: number | null;
+  room_number: string | null;
   body_size: string | null;
   behavior: string | null;
-  ethnicity_category: string | null;
+  meeting_duration: string | null;
   appointment_date_time: string | null;
   is_repeat: boolean;
-  call_notification: string | null;
+  is_mallu: boolean;
+  repeat_count: number;
   total_paid_amount: number;
   amount_paid_to_staff: number;
   staff_name: string | null;
@@ -31,91 +31,68 @@ export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [staffList, setStaffList] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
-  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Filters state
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterNationality, setFilterNationality] = useState('');
-  const [filterMalayali, setFilterMalayali] = useState(''); // '', 'true', 'false'
-  const [filterRepeat, setFilterRepeat] = useState(''); // '', 'true'
-  const [filterSpending, setFilterSpending] = useState(''); // '', 'High', 'Medium', 'Low'
-  const [filterBehavior, setFilterBehavior] = useState(''); // '', 'Regular', 'VIP', 'Needs Attention', 'General'
-  
-  const [formData, setFormData] = useState({
-    name: '', number: '', nationality: '', age: '', body_size: '',
-    behavior: '', ethnicity_category: 'Others', appointment_date_time: '',
-    is_repeat: false, call_notification: 'OK', total_paid_amount: '',
-    amount_paid_to_staff: '', staff_name: ''
-  });
+  const [filterMallu, setFilterMallu] = useState('');
+  const [filterRepeat, setFilterRepeat] = useState('');
+  const [filterBehavior, setFilterBehavior] = useState('');
+  const [filterSpending, setFilterSpending] = useState('');
+  const [sortBy, setSortBy] = useState('latest');
+
+  const emptyForm = {
+    name: '', number: '', nationality: '', age: '', room_number: '',
+    body_size: '', behavior: '', meeting_duration: '',
+    appointment_date_time: '', is_repeat: false, is_mallu: false,
+    repeat_count: '0', total_paid_amount: '', amount_paid_to_staff: '', staff_name: ''
+  };
+  const [formData, setFormData] = useState(emptyForm);
 
   const fetchCustomers = () => {
     setLoading(true);
-    const params = new URLSearchParams();
-    if (searchQuery) params.append('search', searchQuery);
-    if (filterNationality) params.append('nationality', filterNationality);
-    if (filterMalayali) params.append('malayali', filterMalayali);
-    if (filterRepeat) params.append('isRepeat', filterRepeat);
-    if (filterSpending) params.append('spending', filterSpending);
-    if (filterBehavior) params.append('behavior', filterBehavior);
+    const p = new URLSearchParams();
+    if (searchQuery) p.append('search', searchQuery);
+    if (filterMallu) p.append('isMallu', filterMallu);
+    if (filterRepeat) p.append('isRepeat', filterRepeat);
+    if (filterBehavior) p.append('behavior', filterBehavior);
+    if (filterSpending) p.append('spending', filterSpending);
+    p.append('sort', sortBy);
 
-    fetch(`/api/customers?${params.toString()}`)
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) setCustomers(data);
-        setLoading(false);
-      })
+    fetch(`/api/customers?${p.toString()}`)
+      .then(r => r.json())
+      .then(d => { if (Array.isArray(d)) setCustomers(d); setLoading(false); })
       .catch(() => setLoading(false));
   };
 
-  const fetchStaff = () => {
-    fetch('/api/staff')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) setStaffList(data);
-      });
-  };
-
   useEffect(() => {
-    fetchStaff();
+    fetch('/api/staff').then(r => r.json()).then(d => { if (Array.isArray(d)) setStaffList(d); });
   }, []);
 
-  // Debounced search and filter effect
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchCustomers();
-    }, 400); // 400ms debounce
-    return () => clearTimeout(timer);
-  }, [searchQuery, filterNationality, filterMalayali, filterRepeat, filterSpending, filterBehavior]);
+    const t = setTimeout(fetchCustomers, 400);
+    return () => clearTimeout(t);
+  }, [searchQuery, filterMallu, filterRepeat, filterBehavior, filterSpending, sortBy]);
 
-  const openModal = (customer?: Customer) => {
-    if (customer) {
-      setEditingId(customer.id);
+  const openModal = (c?: Customer) => {
+    if (c) {
+      setEditingId(c.id);
       setFormData({
-        name: customer.name,
-        number: customer.number,
-        nationality: customer.nationality || '',
-        age: customer.age?.toString() || '',
-        body_size: customer.body_size || '',
-        behavior: customer.behavior || '',
-        ethnicity_category: customer.ethnicity_category || 'Others',
-        appointment_date_time: customer.appointment_date_time ? new Date(customer.appointment_date_time).toISOString().slice(0, 16) : '',
-        is_repeat: customer.is_repeat,
-        call_notification: customer.call_notification || 'OK',
-        total_paid_amount: customer.total_paid_amount?.toString() || '0',
-        amount_paid_to_staff: customer.amount_paid_to_staff?.toString() || '0',
-        staff_name: customer.staff_name || ''
+        name: c.name, number: c.number, nationality: c.nationality || '',
+        age: c.age?.toString() || '', room_number: c.room_number || '',
+        body_size: c.body_size || '', behavior: c.behavior || '',
+        meeting_duration: c.meeting_duration || '',
+        appointment_date_time: c.appointment_date_time ? new Date(c.appointment_date_time).toISOString().slice(0, 16) : '',
+        is_repeat: c.is_repeat, is_mallu: c.is_mallu,
+        repeat_count: c.repeat_count?.toString() || '0',
+        total_paid_amount: c.total_paid_amount?.toString() || '0',
+        amount_paid_to_staff: c.amount_paid_to_staff?.toString() || '0',
+        staff_name: c.staff_name || ''
       });
     } else {
       setEditingId(null);
-      setFormData({
-        name: '', number: '', nationality: '', age: '', body_size: '',
-        behavior: 'General', ethnicity_category: 'Others', appointment_date_time: '',
-        is_repeat: false, call_notification: 'OK', total_paid_amount: '',
-        amount_paid_to_staff: '', staff_name: ''
-      });
+      setFormData(emptyForm);
     }
     setIsModalOpen(true);
   };
@@ -124,291 +101,267 @@ export default function CustomersPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const url = '/api/customers';
       const method = editingId ? 'PUT' : 'POST';
       const body = editingId ? { id: editingId, ...formData } : formData;
+      const res = await fetch('/api/customers', { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      if (res.ok) { setIsModalOpen(false); fetchCustomers(); }
+    } catch (err) { console.error(err); }
+    finally { setIsSubmitting(false); }
+  };
+  // Admin verification state
+  const [adminOpen, setAdminOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+  const [adminLabel, setAdminLabel] = useState('');
 
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      
-      if (response.ok) {
-        setIsModalOpen(false);
-        fetchCustomers();
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsSubmitting(false);
-    }
+  const requireAdmin = (label: string, action: () => void) => {
+    setAdminLabel(label);
+    setPendingAction(() => action);
+    setAdminOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this entry?')) return;
-    
-    try {
-      const response = await fetch(`/api/customers?id=${id}`, { method: 'DELETE' });
-      if (response.ok) {
-        setCustomers(prev => prev.filter(c => c.id !== id));
-      }
-    } catch (error) {
-      console.error(error);
-    }
+  const handleEdit = (c: Customer) => {
+    requireAdmin('edit this record', () => openModal(c));
+  };
+
+  const handleDelete = (id: string) => {
+    requireAdmin('delete this record', async () => {
+      const res = await fetch(`/api/customers?id=${id}`, { method: 'DELETE' });
+      if (res.ok) setCustomers(prev => prev.filter(c => c.id !== id));
+    });
+  };
+
+  const openWhatsApp = (phone: string) => {
+    const clean = phone.replace(/[^0-9]/g, '');
+    window.open(`https://wa.me/${clean}`, '_blank');
   };
 
   const exportCSV = () => {
-    const headers = ['Name', 'Number', 'Staff Assigned', 'Total Paid (AED)', 'Paid to Staff (AED)', 'Created At'];
-    const csvContent = [
-      headers.join(','),
-      ...customers.map(c => [
-        `"${c.name}"`, 
-        `"${c.number}"`, 
-        `"${c.staff_name || ''}"`, 
-        c.total_paid_amount || 0, 
-        c.amount_paid_to_staff || 0,
-        new Date(c.created_at).toLocaleDateString()
-      ].join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
+    const h = ['Name','Number','Nationality','Room','Amount','Commission','Behavior','Duration','Repeat','Mallu','Date'];
+    const csv = [h.join(','), ...customers.map(c => [
+      `"${c.name}"`,`"${c.number}"`,`"${c.nationality||''}"`,`"${c.room_number||''}"`,
+      c.total_paid_amount||0, c.amount_paid_to_staff||0,`"${c.behavior||''}"`,`"${c.meeting_duration||''}"`,
+      c.is_repeat?'Yes':'No', c.is_mallu?'Yes':'No', new Date(c.created_at).toLocaleDateString()
+    ].join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
     const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `customers_export_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
+    link.href = URL.createObjectURL(blob);
+    link.download = `customers_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
-    document.body.removeChild(link);
   };
+
+  const inputCls = "w-full bg-[#111] border border-white/10 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-red-500 transition-colors";
+  const labelCls = "text-xs font-medium text-gray-400 mb-1 block";
 
   return (
     <div className="min-h-screen bg-black text-white">
       <Navigation />
-      <main className="p-8 max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+      <main className="p-4 md:p-8 max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-3">
           <h1 className="text-2xl md:text-3xl font-semibold">Customers</h1>
-          <div className="flex gap-2 md:gap-4 w-full md:w-auto">
-            <button onClick={exportCSV} className="flex-1 md:flex-none bg-[#1c1c1c] border border-white/10 hover:bg-white/5 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors">
-              Download CSV
+          <div className="flex gap-2 w-full md:w-auto">
+            <button onClick={exportCSV} className="flex-1 md:flex-none bg-[#1c1c1c] border border-white/10 hover:bg-white/5 text-white px-3 py-2 rounded-xl flex items-center justify-center gap-2 text-sm transition-colors">
+              <Download size={14} /> CSV
             </button>
-            <button onClick={() => openModal()} className="flex-1 md:flex-none bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors">
+            <button onClick={() => openModal()} className="flex-1 md:flex-none bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl flex items-center justify-center gap-2 text-sm font-medium transition-colors">
               <Plus size={16} /> Add Customer
             </button>
           </div>
         </div>
 
-        {/* Filter and Search Bar */}
-        <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-4 mb-6 flex flex-col gap-4">
+        {/* Search & Filters */}
+        <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-3 md:p-4 mb-6 space-y-3">
           <div className="flex items-center bg-[#111] border border-white/10 rounded-xl px-4 py-3">
-            <Search size={18} className="text-gray-400 mr-3" />
-            <input 
-              type="text" 
-              placeholder="Search by name or phone number..." 
-              className="bg-transparent border-none text-white w-full focus:outline-none" 
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-            />
+            <Search size={16} className="text-gray-400 mr-3 shrink-0" />
+            <input type="text" placeholder="Search name or phone..." className="bg-transparent text-white w-full text-sm focus:outline-none" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
           </div>
-          
-          <div className="flex gap-4 flex-wrap">
-            <div className="flex items-center gap-2">
-              <Filter size={14} className="text-gray-400" />
-              <span className="text-sm text-gray-400 font-medium">Filters:</span>
-            </div>
-            
-            <input 
-              type="text" 
-              placeholder="Nationality" 
-              className="bg-[#111] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500 w-32" 
-              value={filterNationality}
-              onChange={e => setFilterNationality(e.target.value)}
-            />
-
-            <select 
-              className="bg-[#111] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500"
-              value={filterMalayali}
-              onChange={e => setFilterMalayali(e.target.value)}
-            >
-              <option value="">All Ethnicities</option>
-              <option value="true">Malayali Only</option>
-              <option value="false">Non-Malayali</option>
+          <div className="flex gap-2 flex-wrap items-center">
+            <Filter size={14} className="text-gray-400 shrink-0" />
+            <select className="bg-[#111] border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white" value={filterMallu} onChange={e => setFilterMallu(e.target.value)}>
+              <option value="">All</option><option value="true">Mallu Only</option>
             </select>
-
-            <select 
-              className="bg-[#111] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500"
-              value={filterSpending}
-              onChange={e => setFilterSpending(e.target.value)}
-            >
-              <option value="">All Spending</option>
-              <option value="High">High (&gt;10k AED)</option>
-              <option value="Medium">Medium (2.5k-10k)</option>
-              <option value="Low">Low (&lt;2.5k AED)</option>
+            <select className="bg-[#111] border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white" value={filterRepeat} onChange={e => setFilterRepeat(e.target.value)}>
+              <option value="">All</option><option value="true">Repeat Only</option>
             </select>
-
-            <select 
-              className="bg-[#111] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500"
-              value={filterBehavior}
-              onChange={e => setFilterBehavior(e.target.value)}
-            >
-              <option value="">All Behaviors</option>
-              <option value="Regular">Regular</option>
-              <option value="VIP">VIP</option>
-              <option value="Needs Attention">Needs Attention</option>
-              <option value="General">General</option>
+            <select className="bg-[#111] border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white" value={filterBehavior} onChange={e => setFilterBehavior(e.target.value)}>
+              <option value="">Behavior</option><option value="Good">Good</option><option value="Very Good">Very Good</option><option value="Bad">Bad</option>
             </select>
-
-            <select 
-              className="bg-[#111] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500"
-              value={filterRepeat}
-              onChange={e => setFilterRepeat(e.target.value)}
-            >
-              <option value="">All Clients</option>
-              <option value="true">Repeat Customers</option>
+            <select className="bg-[#111] border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white" value={filterSpending} onChange={e => setFilterSpending(e.target.value)}>
+              <option value="">Spending</option><option value="High">High</option><option value="Medium">Medium</option><option value="Low">Low</option>
             </select>
+            <button onClick={() => setSortBy(sortBy === 'latest' ? 'highest' : 'latest')} className="ml-auto bg-[#111] border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white flex items-center gap-1 hover:bg-white/5 transition-colors">
+              <ArrowUpDown size={12} /> {sortBy === 'latest' ? 'Latest' : 'Top $'}
+            </button>
           </div>
         </div>
 
-        <div className="bg-[#111] border border-white/10 rounded-2xl overflow-x-auto">
-          {loading ? (
-            <div className="p-8 text-center text-gray-400">Loading customers...</div>
-          ) : (
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-white/10 text-gray-400 text-sm">
-                  <th className="p-4 font-medium">Name</th>
-                  <th className="p-4 font-medium">Number</th>
-                  <th className="p-4 font-medium">Staff Assigned</th>
-                  <th className="p-4 font-medium">Total Paid</th>
-                  <th className="p-4 font-medium">Paid to Staff</th>
-                  <th className="p-4 font-medium text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {customers.map(c => (
-                  <tr key={c.id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
-                    <td className="p-4 font-medium">{c.name}</td>
-                    <td className="p-4 text-gray-400">{c.number}</td>
-                    <td className="p-4 text-gray-400">{c.staff_name || '-'}</td>
-                    <td className="p-4 font-semibold text-green-500">{Number(c.total_paid_amount || 0).toLocaleString()} AED</td>
-                    <td className="p-4 font-semibold text-red-500">{Number(c.amount_paid_to_staff || 0).toLocaleString()} AED</td>
-                    <td className="p-4 text-right">
-                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => openModal(c)} className="p-2 bg-white/5 hover:bg-white/10 rounded text-gray-300">
-                          <Pencil size={14} />
-                        </button>
-                        <button onClick={() => handleDelete(c.id)} className="p-2 bg-red-500/10 hover:bg-red-500/20 rounded text-red-500">
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {customers.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="p-8 text-center text-gray-400">No customers found.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          )}
-        </div>
+        {/* Customer Cards */}
+        {loading ? (
+          <div className="text-center text-gray-400 py-12">Loading...</div>
+        ) : customers.length === 0 ? (
+          <div className="text-center text-gray-400 py-12 bg-[#1c1c1c] border border-white/10 rounded-2xl">No customers found.</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {customers.map(c => (
+              <div key={c.id} className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-4 hover:border-white/20 transition-colors group">
+                {/* Top Row */}
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h3 className="font-semibold text-white text-base">{c.name}</h3>
+                    <p className="text-xs text-gray-400">{c.number}</p>
+                  </div>
+                  <div className="flex gap-1">
+                    <button onClick={() => openWhatsApp(c.number)} className="p-1.5 bg-green-600/20 hover:bg-green-600/40 rounded-lg text-green-400 transition-colors" title="WhatsApp">
+                      <MessageCircle size={14} />
+                    </button>
+                    <button onClick={() => handleEdit(c)} className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-gray-300 transition-colors">
+                      <Pencil size={14} />
+                    </button>
+                    <button onClick={() => handleDelete(c.id)} className="p-1.5 bg-red-500/10 hover:bg-red-500/20 rounded-lg text-red-500 transition-colors">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Badges */}
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                  {c.is_repeat && <span className="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">Repeat ({c.repeat_count || 1})</span>}
+                  {c.is_mallu && <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">Mallu</span>}
+                  {c.behavior && <span className={`text-[10px] px-2 py-0.5 rounded-full ${c.behavior === 'Very Good' ? 'bg-green-500/20 text-green-400' : c.behavior === 'Good' ? 'bg-blue-500/20 text-blue-300' : 'bg-red-500/20 text-red-400'}`}>{c.behavior}</span>}
+                  {c.body_size && <span className="text-[10px] bg-white/10 text-gray-300 px-2 py-0.5 rounded-full">{c.body_size}</span>}
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
+                  <div className="bg-black/30 rounded-lg p-2">
+                    <span className="text-gray-500 block">Amount</span>
+                    <span className="font-bold text-green-500">{(c.total_paid_amount || 0).toLocaleString()} AED</span>
+                  </div>
+                  <div className="bg-black/30 rounded-lg p-2">
+                    <span className="text-gray-500 block">Commission</span>
+                    <span className="font-bold text-red-400">{(c.amount_paid_to_staff || 0).toLocaleString()} AED</span>
+                  </div>
+                </div>
+
+                {/* Details */}
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-400 border-t border-white/5 pt-2">
+                  {c.nationality && <span>🌍 {c.nationality}</span>}
+                  {c.room_number && <span>🏠 Room {c.room_number}</span>}
+                  {c.meeting_duration && <span>⏱ {c.meeting_duration}</span>}
+                  {c.age && <span>👤 Age {c.age}</span>}
+                  {c.staff_name && <span>👨‍💼 {c.staff_name}</span>}
+                  <span>📅 {new Date(c.created_at).toLocaleDateString()}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </main>
 
+      {/* Add/Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center z-50 p-4" onClick={() => setIsModalOpen(false)}>
-          <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="p-6 border-b border-white/10 flex justify-between items-center sticky top-0 bg-[#1c1c1c] z-10">
-              <h2 className="text-xl font-semibold">{editingId ? 'Edit Customer' : 'Add New Customer'}</h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white"><X size={20} /></button>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-end md:items-center z-50" onClick={() => setIsModalOpen(false)}>
+          <div className="bg-[#1c1c1c] border border-white/10 rounded-t-3xl md:rounded-2xl w-full md:max-w-2xl max-h-[92vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            {/* Sticky Header */}
+            <div className="p-4 md:p-5 border-b border-white/10 flex justify-between items-center shrink-0">
+              <h2 className="text-lg font-semibold">{editingId ? 'Edit Customer' : 'New Customer'}</h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white p-1"><X size={20} /></button>
             </div>
-            <form className="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4" onSubmit={handleSubmit}>
-              
-              {/* Financial & Assignment Section */}
-              <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-white/5 rounded-xl mb-2">
-                <div className="space-y-1">
-                  <label className="text-sm text-gray-400">Staff Assigned</label>
-                  <select className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.staff_name} onChange={e => setFormData({...formData, staff_name: e.target.value})}>
-                    <option value="">Select Staff...</option>
-                    {staffList.map(staff => (
-                      <option key={staff.id} value={staff.name}>{staff.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-sm text-gray-400 font-bold text-green-500">Total Paid Amount (AED)</label>
-                  <input type="number" step="0.01" className="w-full bg-[#111] border border-green-500/30 rounded-lg p-3 text-white focus:outline-none focus:border-green-500" value={formData.total_paid_amount} onChange={e => setFormData({...formData, total_paid_amount: e.target.value})} />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-sm text-gray-400 font-bold text-red-500">Amount Paid to Staff (AED)</label>
-                  <input type="number" step="0.01" className="w-full bg-[#111] border border-red-500/30 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.amount_paid_to_staff} onChange={e => setFormData({...formData, amount_paid_to_staff: e.target.value})} />
+
+            {/* Scrollable Form */}
+            <form className="p-4 md:p-5 overflow-y-auto flex-1 space-y-5" onSubmit={handleSubmit}>
+              {/* Payment Section */}
+              <div className="bg-white/5 rounded-xl p-4 space-y-3">
+                <h3 className="text-sm font-semibold text-gray-300 mb-2">💰 Payment</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div><label className={labelCls}>Staff Assigned</label>
+                    <select className={inputCls} value={formData.staff_name} onChange={e => setFormData({...formData, staff_name: e.target.value})}>
+                      <option value="">Select...</option>
+                      {staffList.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                    </select>
+                  </div>
+                  <div><label className={`${labelCls} text-green-500`}>Total Amount (AED)</label>
+                    <input type="number" step="0.01" placeholder="0.00" className={`${inputCls} border-green-500/30`} value={formData.total_paid_amount} onChange={e => setFormData({...formData, total_paid_amount: e.target.value})} />
+                  </div>
+                  <div><label className={`${labelCls} text-red-400`}>Commission (AED)</label>
+                    <input type="number" step="0.01" placeholder="0.00" className={`${inputCls} border-red-500/30`} value={formData.amount_paid_to_staff} onChange={e => setFormData({...formData, amount_paid_to_staff: e.target.value})} />
+                  </div>
                 </div>
               </div>
 
-              {/* Personal Details */}
-              <div className="space-y-1">
-                <label className="text-sm text-gray-400">Customer Name</label>
-                <input required type="text" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
-              </div>
-              <div className="space-y-1">
-                <label className="text-sm text-gray-400">Customer Number</label>
-                <input required type="text" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.number} onChange={e => setFormData({...formData, number: e.target.value})} />
-              </div>
-              <div className="space-y-1">
-                <label className="text-sm text-gray-400">Nationality</label>
-                <input type="text" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.nationality} onChange={e => setFormData({...formData, nationality: e.target.value})} />
-              </div>
-              <div className="space-y-1">
-                <label className="text-sm text-gray-400">Age</label>
-                <input type="number" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.age} onChange={e => setFormData({...formData, age: e.target.value})} />
-              </div>
-              <div className="space-y-1">
-                <label className="text-sm text-gray-400">Body Size</label>
-                <input type="text" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.body_size} onChange={e => setFormData({...formData, body_size: e.target.value})} />
-              </div>
-              <div className="space-y-1">
-                <label className="text-sm text-gray-400">Behavior</label>
-                <select className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.behavior} onChange={e => setFormData({...formData, behavior: e.target.value})}>
-                  <option value="General">General</option>
-                  <option value="Regular">Regular</option>
-                  <option value="VIP">VIP</option>
-                  <option value="Needs Attention">Needs Attention</option>
-                </select>
+              {/* Basic Info */}
+              <div>
+                <h3 className="text-sm font-semibold text-gray-300 mb-3">👤 Basic Info</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div><label className={labelCls}>Customer Name *</label><input required type="text" className={inputCls} value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} /></div>
+                  <div><label className={labelCls}>Phone Number *</label><input required type="text" className={inputCls} value={formData.number} onChange={e => setFormData({...formData, number: e.target.value})} /></div>
+                  <div><label className={labelCls}>Age</label><input type="number" className={inputCls} value={formData.age} onChange={e => setFormData({...formData, age: e.target.value})} /></div>
+                  <div><label className={labelCls}>Nationality</label><input type="text" className={inputCls} value={formData.nationality} onChange={e => setFormData({...formData, nationality: e.target.value})} /></div>
+                  <div><label className={labelCls}>Room Number</label><input type="text" className={inputCls} value={formData.room_number} onChange={e => setFormData({...formData, room_number: e.target.value})} /></div>
+                  <div><label className={labelCls}>Date &amp; Time</label><input type="datetime-local" className={inputCls} value={formData.appointment_date_time} onChange={e => setFormData({...formData, appointment_date_time: e.target.value})} /></div>
+                </div>
               </div>
 
-              {/* Categorization */}
-              <div className="space-y-1">
-                <label className="text-sm text-gray-400">Ethnicity Category</label>
-                <select className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.ethnicity_category} onChange={e => setFormData({...formData, ethnicity_category: e.target.value})}>
-                  <option value="Malayali">Malayali</option>
-                  <option value="Others">Others</option>
-                </select>
+              {/* Details */}
+              <div>
+                <h3 className="text-sm font-semibold text-gray-300 mb-3">📋 Details</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div><label className={labelCls}>Meeting Duration</label>
+                    <select className={inputCls} value={formData.meeting_duration} onChange={e => setFormData({...formData, meeting_duration: e.target.value})}>
+                      <option value="">Select...</option>
+                      <option value="1 Hour">1 Hour</option><option value="2 Hours">2 Hours</option>
+                      <option value="3 Hours">3 Hours</option><option value="4 Hours">4 Hours</option>
+                      <option value="More Than 5 Hours">More Than 5 Hours</option>
+                    </select>
+                  </div>
+                  <div><label className={labelCls}>Behavior</label>
+                    <select className={inputCls} value={formData.behavior} onChange={e => setFormData({...formData, behavior: e.target.value})}>
+                      <option value="">Select...</option>
+                      <option value="Bad">Bad</option><option value="Good">Good</option><option value="Very Good">Very Good</option>
+                    </select>
+                  </div>
+                  <div><label className={labelCls}>Body Size</label>
+                    <select className={inputCls} value={formData.body_size} onChange={e => setFormData({...formData, body_size: e.target.value})}>
+                      <option value="">Select...</option>
+                      <option value="Big">Big</option><option value="Normal">Normal</option><option value="Small">Small</option>
+                    </select>
+                  </div>
+                </div>
               </div>
-              <div className="space-y-1">
-                <label className="text-sm text-gray-400">Call Notification</label>
-                <select className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.call_notification} onChange={e => setFormData({...formData, call_notification: e.target.value})}>
-                  <option value="OK">OK</option>
-                  <option value="Not OK">Not OK</option>
-                </select>
+
+              {/* Checkboxes */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <label className="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/10 flex-1 cursor-pointer">
+                  <input type="checkbox" className="w-5 h-5 accent-red-500 rounded shrink-0" checked={formData.is_repeat} onChange={e => setFormData({...formData, is_repeat: e.target.checked})} />
+                  <div><span className="text-sm font-medium text-white">Repeat Customer</span><br/><span className="text-xs text-gray-500">Returning client</span></div>
+                </label>
+                <label className="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/10 flex-1 cursor-pointer">
+                  <input type="checkbox" className="w-5 h-5 accent-yellow-500 rounded shrink-0" checked={formData.is_mallu} onChange={e => setFormData({...formData, is_mallu: e.target.checked})} />
+                  <div><span className="text-sm font-medium text-white">Mallu Customer</span><br/><span className="text-xs text-gray-500">Malayali origin</span></div>
+                </label>
               </div>
-              <div className="space-y-1 col-span-2">
-                <label className="text-sm text-gray-400">Appointment Date/Time</label>
-                <input type="datetime-local" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.appointment_date_time} onChange={e => setFormData({...formData, appointment_date_time: e.target.value})} />
-              </div>
-              <div className="space-y-1 col-span-1 md:col-span-2 flex items-start md:items-center gap-2 bg-white/5 p-3 rounded-lg border border-white/10">
-                <input type="checkbox" className="w-5 h-5 mt-0.5 md:mt-0 accent-red-500 rounded bg-[#111] shrink-0" checked={formData.is_repeat} onChange={e => setFormData({...formData, is_repeat: e.target.checked})} />
-                <label className="text-sm font-medium text-white">Repeat Customer (Mark if this is a returning client)</label>
-              </div>
-              
-              <div className="col-span-1 md:col-span-2 mt-4">
-                <button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white p-4 rounded-xl font-medium text-lg transition-colors" disabled={isSubmitting}>
-                  {isSubmitting ? 'Saving...' : 'Save Customer Data'}
-                </button>
-              </div>
+
+              {formData.is_repeat && (
+                <div className="max-w-xs"><label className={labelCls}>Visit Count</label><input type="number" min="0" className={inputCls} value={formData.repeat_count} onChange={e => setFormData({...formData, repeat_count: e.target.value})} /></div>
+              )}
             </form>
+
+            {/* Sticky Submit */}
+            <div className="p-4 border-t border-white/10 shrink-0 bg-[#1c1c1c]">
+              <button type="submit" form="" onClick={handleSubmit} className="w-full bg-red-600 hover:bg-red-700 text-white p-3.5 rounded-xl font-medium text-base transition-colors disabled:opacity-50" disabled={isSubmitting}>
+                {isSubmitting ? 'Saving...' : (editingId ? 'Update Customer' : 'Save Customer')}
+              </button>
+            </div>
           </div>
         </div>
       )}
+
+      <AdminVerify
+        isOpen={adminOpen}
+        onClose={() => setAdminOpen(false)}
+        onVerified={() => { setAdminOpen(false); if (pendingAction) pendingAction(); }}
+        actionLabel={adminLabel}
+      />
     </div>
   );
 }

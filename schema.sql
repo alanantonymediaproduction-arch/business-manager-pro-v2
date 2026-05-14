@@ -3,6 +3,7 @@
 -- ==========================================
 -- 1. CLEANUP PREVIOUS TABLES (If they exist)
 -- ==========================================
+DROP TABLE IF EXISTS online_services CASCADE;
 DROP TABLE IF EXISTS financial_records CASCADE;
 DROP TABLE IF EXISTS customers CASCADE;
 DROP TABLE IF EXISTS profiles CASCADE;
@@ -21,6 +22,7 @@ CREATE TABLE profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   full_name TEXT,
   custom_persona_name TEXT DEFAULT 'Deepa',
+  admin_pin TEXT DEFAULT '1234',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -31,12 +33,14 @@ CREATE TABLE customers (
   number TEXT NOT NULL,
   nationality TEXT,
   age INTEGER,
-  body_size TEXT,
-  behavior TEXT,
-  ethnicity_category TEXT CHECK (ethnicity_category IN ('Malayali', 'Others')),
+  room_number TEXT,
+  body_size TEXT CHECK (body_size IN ('Big', 'Normal', 'Small')),
+  behavior TEXT CHECK (behavior IN ('Bad', 'Good', 'Very Good')),
+  meeting_duration TEXT CHECK (meeting_duration IN ('1 Hour', '2 Hours', '3 Hours', '4 Hours', 'More Than 5 Hours')),
   appointment_date_time TIMESTAMP WITH TIME ZONE,
   is_repeat BOOLEAN DEFAULT false,
-  call_notification TEXT CHECK (call_notification IN ('OK', 'Not OK')),
+  is_mallu BOOLEAN DEFAULT false,
+  repeat_count INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -62,6 +66,19 @@ CREATE TABLE staff (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Online Services Table (Private per user)
+CREATE TABLE online_services (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  customer_name TEXT NOT NULL,
+  phone_number TEXT NOT NULL,
+  amount NUMERIC NOT NULL,
+  session_time TEXT,
+  payment_method TEXT CHECK (payment_method IN ('Cash', 'Bank Account', 'Google Pay')),
+  service_type TEXT CHECK (service_type IN ('Video Call', 'Audio Call', 'Photos + Audio', 'Video Clips + Audio')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- ==========================================
 -- 3. ENABLE ROW LEVEL SECURITY (RLS)
 -- ==========================================
@@ -69,6 +86,7 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE financial_records ENABLE ROW LEVEL SECURITY;
 ALTER TABLE staff ENABLE ROW LEVEL SECURITY;
+ALTER TABLE online_services ENABLE ROW LEVEL SECURITY;
 
 -- ==========================================
 -- 4. APPLY SECURITY POLICIES
@@ -78,6 +96,7 @@ ALTER TABLE staff ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Enable read access for all authenticated users" ON customers FOR SELECT USING (auth.role() = 'authenticated');
 CREATE POLICY "Enable insert for authenticated users" ON customers FOR INSERT WITH CHECK (auth.role() = 'authenticated');
 CREATE POLICY "Enable update for authenticated users" ON customers FOR UPDATE USING (auth.role() = 'authenticated');
+CREATE POLICY "Enable delete for authenticated users" ON customers FOR DELETE USING (auth.role() = 'authenticated');
 
 -- Private Financial Silos Policies
 CREATE POLICY "Users can view their own financial records" ON financial_records FOR SELECT USING (auth.uid() = user_id);
@@ -96,5 +115,8 @@ CREATE POLICY "Enable insert for authenticated users on staff" ON staff FOR INSE
 CREATE POLICY "Enable update for authenticated users on staff" ON staff FOR UPDATE USING (auth.role() = 'authenticated');
 CREATE POLICY "Enable delete for authenticated users on staff" ON staff FOR DELETE USING (auth.role() = 'authenticated');
 
--- Customers DELETE Policy
-CREATE POLICY "Enable delete for authenticated users" ON customers FOR DELETE USING (auth.role() = 'authenticated');
+-- Online Services Policies (Private per user)
+CREATE POLICY "Users can view their own online services" ON online_services FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own online services" ON online_services FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own online services" ON online_services FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own online services" ON online_services FOR DELETE USING (auth.uid() = user_id);
