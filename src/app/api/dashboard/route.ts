@@ -12,51 +12,51 @@ export async function GET(request: Request) {
     const endOfDay = new Date();
     endOfDay.setHours(23, 59, 59, 999);
 
-    let earningsQuery = supabase.from('earnings').select('*');
+    let customersQuery = supabase.from('customers').select('*');
     let expensesQuery = supabase.from('expenses').select('*');
-    let commissionsQuery = supabase.from('commissions').select('*');
     let paymentsQuery = supabase.from('payments').select('id', { count: 'exact' }).eq('status', 'pending');
 
     if (linkedStaff) {
-      earningsQuery = earningsQuery.eq('linked_staff_name', linkedStaff);
-      commissionsQuery = commissionsQuery.eq('linked_staff_name', linkedStaff);
+      customersQuery = customersQuery.eq('staff_name', linkedStaff);
     } else {
-      earningsQuery = earningsQuery.neq('linked_staff_name', 'Deepa');
-      commissionsQuery = commissionsQuery.neq('linked_staff_name', 'Deepa');
+      customersQuery = customersQuery.neq('staff_name', 'Deepa');
     }
 
     const [
-      { data: earnings, error: err1 },
+      { data: customers, error: err1 },
       { data: expenses, error: err2 },
-      { data: commissions, error: err3 },
       { count: pendingPaymentsCount, error: err4 }
     ] = await Promise.all([
-      earningsQuery,
+      customersQuery,
       expensesQuery,
-      commissionsQuery,
       paymentsQuery
     ]);
 
-    if (err1 || err2 || err3 || err4) throw new Error('Failed fetching from Supabase');
+    if (err1 || err2 || err4) throw new Error('Failed fetching from Supabase');
 
-    const safeEarnings = earnings || [];
+    const safeCustomers = customers || [];
     const safeExpenses = expenses || [];
-    const safeCommissions = commissions || [];
 
-    const todayEarnings = safeEarnings.filter(e => new Date(e.created_at) >= startOfDay && new Date(e.created_at) <= endOfDay)
-                                     .reduce((sum, e) => sum + Number(e.amount), 0);
-    const totalEarnings = safeEarnings.reduce((sum, e) => sum + Number(e.amount), 0);
+    // Customer financial aggregation
+    const todayEarnings = safeCustomers.filter(c => new Date(c.created_at) >= startOfDay && new Date(c.created_at) <= endOfDay)
+                                     .reduce((sum, c) => sum + Number(c.total_paid_amount || 0), 0);
+    const totalEarnings = safeCustomers.reduce((sum, c) => sum + Number(c.total_paid_amount || 0), 0);
     
+    const todayCommissions = safeCustomers.filter(c => new Date(c.created_at) >= startOfDay && new Date(c.created_at) <= endOfDay)
+                                           .reduce((sum, c) => sum + Number(c.amount_paid_to_staff || 0), 0);
+    const totalCommissions = safeCustomers.reduce((sum, c) => sum + Number(c.amount_paid_to_staff || 0), 0);
+
     const todayExpenses = safeExpenses.filter(e => new Date(e.created_at) >= startOfDay && new Date(e.created_at) <= endOfDay)
                                      .reduce((sum, e) => sum + Number(e.amount), 0);
-                                     
-    const todayCommissions = safeCommissions.filter(e => new Date(e.created_at) >= startOfDay && new Date(e.created_at) <= endOfDay)
-                                           .reduce((sum, e) => sum + Number(e.amount), 0);
-    const totalCommissions = safeCommissions.reduce((sum, e) => sum + Number(e.amount), 0);
 
-    const netProfit = totalEarnings - (safeExpenses.reduce((sum, e) => sum + Number(e.amount), 0)) - totalCommissions;
+    // Company Share = Total Paid Amount - Amount Paid to Staff
+    const companyShare = totalEarnings - totalCommissions;
+    
+    // Net profit accounts for general expenses too
+    const totalExpenses = safeExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
+    const netProfit = companyShare - totalExpenses;
 
-    // Generate chart data for last 7 days
+    // Generate chart data for last 7 days (based on Company Share)
     const chartData = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
@@ -64,9 +64,9 @@ export async function GET(request: Request) {
       const dayStart = new Date(d); dayStart.setHours(0,0,0,0);
       const dayEnd = new Date(d); dayEnd.setHours(23,59,59,999);
       
-      const dayTotal = safeEarnings
-        .filter(e => new Date(e.created_at) >= dayStart && new Date(e.created_at) <= dayEnd)
-        .reduce((sum, e) => sum + Number(e.amount), 0);
+      const dayTotal = safeCustomers
+        .filter(c => new Date(c.created_at) >= dayStart && new Date(c.created_at) <= dayEnd)
+        .reduce((sum, c) => sum + (Number(c.total_paid_amount || 0) - Number(c.amount_paid_to_staff || 0)), 0);
         
       chartData.push({
         name: d.toLocaleDateString('en-US', { weekday: 'short' }),
@@ -79,6 +79,7 @@ export async function GET(request: Request) {
       todayCommissions,
       totalEarnings,
       totalCommissions,
+      companyShare,
       todayExpenses,
       pendingPayments: pendingPaymentsCount || 0,
       netProfit,

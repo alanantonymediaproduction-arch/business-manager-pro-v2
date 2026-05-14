@@ -12,6 +12,7 @@ interface DashboardData {
   totalCommissions: number;
   todayExpenses: number;
   pendingPayments: number;
+  companyShare: number;
   netProfit: number;
   chartData: { name: string; value: number }[];
 }
@@ -155,8 +156,8 @@ export default function Dashboard() {
           <div className="flex flex-col gap-6">
             <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-5 flex justify-between items-center">
               <div className="flex flex-col gap-1">
-                <span className="text-gray-400 text-sm">Net Profit</span>
-                <span className="text-2xl font-semibold">${data.netProfit.toLocaleString()}</span>
+                <span className="text-gray-400 text-sm font-bold text-blue-400">Company Share</span>
+                <span className="text-2xl font-semibold">${data.companyShare.toLocaleString()}</span>
               </div>
               <div className="bg-white/10 w-10 h-10 rounded-lg flex justify-center items-center">
                 <TrendingUp size={20} className="text-white" />

@@ -11,6 +11,7 @@ interface DashboardData {
   totalCommissions: number;
   todayExpenses: number;
   pendingPayments: number;
+  companyShare: number;
   netProfit: number;
   chartData: { name: string; value: number }[];
 }
@@ -106,10 +107,10 @@ export default function DeepaDashboard() {
           </div>
           <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-6 flex flex-col">
             <div className="flex justify-between items-center mb-4">
-              <span className="text-gray-400 text-sm font-medium">Net Value</span>
+              <span className="text-gray-400 text-sm font-medium">Company Share</span>
               <TrendingUp size={16} className="text-gray-400" />
             </div>
-            <div className="text-3xl font-semibold mb-2">${data.netProfit.toLocaleString()}</div>
+            <div className="text-3xl font-semibold mb-2">${data.companyShare.toLocaleString()}</div>
           </div>
         </div>
       </main>

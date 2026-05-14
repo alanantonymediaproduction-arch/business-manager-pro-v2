@@ -4,10 +4,23 @@ import { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import { Plus, X, Pencil, Trash2 } from 'lucide-react';
 
+interface Staff {
+  id: string;
+  name: string;
+}
+
 interface Customer {
   id: string;
   name: string;
   number: string;
+  nationality: string | null;
+  age: number | null;
+  body_size: string | null;
+  behavior: string | null;
+  ethnicity_category: string | null;
+  appointment_date_time: string | null;
+  is_repeat: boolean;
+  call_notification: string | null;
   total_paid_amount: number;
   amount_paid_to_staff: number;
   staff_name: string | null;
@@ -16,6 +29,7 @@ interface Customer {
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [staffList, setStaffList] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -23,11 +37,15 @@ export default function CustomersPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
-    name: '', number: '', total_paid_amount: '', amount_paid_to_staff: '', staff_name: ''
+    name: '', number: '', nationality: '', age: '', body_size: '',
+    behavior: '', ethnicity_category: 'Others', appointment_date_time: '',
+    is_repeat: false, call_notification: 'OK', total_paid_amount: '',
+    amount_paid_to_staff: '', staff_name: ''
   });
 
   useEffect(() => {
     fetchCustomers();
+    fetchStaff();
   }, []);
 
   const fetchCustomers = () => {
@@ -39,19 +57,40 @@ export default function CustomersPage() {
       });
   };
 
+  const fetchStaff = () => {
+    fetch('/api/staff')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setStaffList(data);
+      });
+  };
+
   const openModal = (customer?: Customer) => {
     if (customer) {
       setEditingId(customer.id);
       setFormData({
         name: customer.name,
         number: customer.number,
+        nationality: customer.nationality || '',
+        age: customer.age?.toString() || '',
+        body_size: customer.body_size || '',
+        behavior: customer.behavior || '',
+        ethnicity_category: customer.ethnicity_category || 'Others',
+        appointment_date_time: customer.appointment_date_time ? new Date(customer.appointment_date_time).toISOString().slice(0, 16) : '',
+        is_repeat: customer.is_repeat,
+        call_notification: customer.call_notification || 'OK',
         total_paid_amount: customer.total_paid_amount?.toString() || '0',
         amount_paid_to_staff: customer.amount_paid_to_staff?.toString() || '0',
         staff_name: customer.staff_name || ''
       });
     } else {
       setEditingId(null);
-      setFormData({ name: '', number: '', total_paid_amount: '', amount_paid_to_staff: '', staff_name: '' });
+      setFormData({
+        name: '', number: '', nationality: '', age: '', body_size: '',
+        behavior: '', ethnicity_category: 'Others', appointment_date_time: '',
+        is_repeat: false, call_notification: 'OK', total_paid_amount: '',
+        amount_paid_to_staff: '', staff_name: ''
+      });
     }
     setIsModalOpen(true);
   };
@@ -99,20 +138,20 @@ export default function CustomersPage() {
       <Navigation />
       <main className="p-8 max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-semibold">Financial Customers</h1>
+          <h1 className="text-3xl font-semibold">Customers</h1>
           <button onClick={() => openModal()} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
-            <Plus size={16} /> Add Entry
+            <Plus size={16} /> Add Customer
           </button>
         </div>
 
         <div className="bg-[#111] border border-white/10 rounded-2xl overflow-x-auto">
           {loading ? (
-            <div className="p-8 text-center text-gray-400">Loading records...</div>
+            <div className="p-8 text-center text-gray-400">Loading customers...</div>
           ) : (
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-white/10 text-gray-400 text-sm">
-                  <th className="p-4 font-medium">Customer Name</th>
+                  <th className="p-4 font-medium">Name</th>
                   <th className="p-4 font-medium">Number</th>
                   <th className="p-4 font-medium">Staff Assigned</th>
                   <th className="p-4 font-medium">Total Paid</th>
@@ -142,7 +181,7 @@ export default function CustomersPage() {
                 ))}
                 {customers.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="p-8 text-center text-gray-400">No customer financial records found.</td>
+                    <td colSpan={6} className="p-8 text-center text-gray-400">No customers found.</td>
                   </tr>
                 )}
               </tbody>
@@ -153,12 +192,35 @@ export default function CustomersPage() {
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center z-50 p-4" onClick={() => setIsModalOpen(false)}>
-          <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
-            <div className="p-6 border-b border-white/10 flex justify-between items-center">
-              <h2 className="text-xl font-semibold">{editingId ? 'Edit Financial Entry' : 'New Financial Entry'}</h2>
+          <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="p-6 border-b border-white/10 flex justify-between items-center sticky top-0 bg-[#1c1c1c] z-10">
+              <h2 className="text-xl font-semibold">{editingId ? 'Edit Customer' : 'Add New Customer'}</h2>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white"><X size={20} /></button>
             </div>
-            <form className="p-6 space-y-4" onSubmit={handleSubmit}>
+            <form className="p-6 grid grid-cols-2 gap-x-6 gap-y-4" onSubmit={handleSubmit}>
+              
+              {/* Financial & Assignment Section */}
+              <div className="col-span-2 grid grid-cols-3 gap-4 p-4 bg-white/5 rounded-xl mb-2">
+                <div className="space-y-1">
+                  <label className="text-sm text-gray-400">Staff Assigned</label>
+                  <select className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.staff_name} onChange={e => setFormData({...formData, staff_name: e.target.value})}>
+                    <option value="">Select Staff...</option>
+                    {staffList.map(staff => (
+                      <option key={staff.id} value={staff.name}>{staff.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm text-gray-400 font-bold text-green-500">Total Paid Amount ($)</label>
+                  <input type="number" step="0.01" className="w-full bg-[#111] border border-green-500/30 rounded-lg p-3 text-white focus:outline-none focus:border-green-500" value={formData.total_paid_amount} onChange={e => setFormData({...formData, total_paid_amount: e.target.value})} />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm text-gray-400 font-bold text-red-500">Amount Paid to Staff ($)</label>
+                  <input type="number" step="0.01" className="w-full bg-[#111] border border-red-500/30 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.amount_paid_to_staff} onChange={e => setFormData({...formData, amount_paid_to_staff: e.target.value})} />
+                </div>
+              </div>
+
+              {/* Personal Details */}
               <div className="space-y-1">
                 <label className="text-sm text-gray-400">Customer Name</label>
                 <input required type="text" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
@@ -168,21 +230,49 @@ export default function CustomersPage() {
                 <input required type="text" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.number} onChange={e => setFormData({...formData, number: e.target.value})} />
               </div>
               <div className="space-y-1">
-                <label className="text-sm text-gray-400">Staff Assigned To</label>
-                <input type="text" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" placeholder="e.g., Deepa" value={formData.staff_name} onChange={e => setFormData({...formData, staff_name: e.target.value})} />
+                <label className="text-sm text-gray-400">Nationality</label>
+                <input type="text" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.nationality} onChange={e => setFormData({...formData, nationality: e.target.value})} />
               </div>
               <div className="space-y-1">
-                <label className="text-sm text-gray-400 font-bold text-green-500">TOTAL PAID AMOUNT ($)</label>
-                <input required type="number" step="0.01" className="w-full bg-[#111] border border-green-500/30 rounded-lg p-3 text-white focus:outline-none focus:border-green-500" value={formData.total_paid_amount} onChange={e => setFormData({...formData, total_paid_amount: e.target.value})} />
+                <label className="text-sm text-gray-400">Age</label>
+                <input type="number" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.age} onChange={e => setFormData({...formData, age: e.target.value})} />
               </div>
               <div className="space-y-1">
-                <label className="text-sm text-gray-400 font-bold text-red-500">Amount Paid to Staff ($)</label>
-                <input required type="number" step="0.01" className="w-full bg-[#111] border border-red-500/30 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.amount_paid_to_staff} onChange={e => setFormData({...formData, amount_paid_to_staff: e.target.value})} />
+                <label className="text-sm text-gray-400">Body Size</label>
+                <input type="text" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.body_size} onChange={e => setFormData({...formData, body_size: e.target.value})} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm text-gray-400">Behavior</label>
+                <input type="text" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.behavior} onChange={e => setFormData({...formData, behavior: e.target.value})} />
+              </div>
+
+              {/* Categorization */}
+              <div className="space-y-1">
+                <label className="text-sm text-gray-400">Ethnicity Category</label>
+                <select className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.ethnicity_category} onChange={e => setFormData({...formData, ethnicity_category: e.target.value})}>
+                  <option value="Malayali">Malayali</option>
+                  <option value="Others">Others</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm text-gray-400">Call Notification</label>
+                <select className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.call_notification} onChange={e => setFormData({...formData, call_notification: e.target.value})}>
+                  <option value="OK">OK</option>
+                  <option value="Not OK">Not OK</option>
+                </select>
+              </div>
+              <div className="space-y-1 col-span-2">
+                <label className="text-sm text-gray-400">Appointment Date/Time</label>
+                <input type="datetime-local" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.appointment_date_time} onChange={e => setFormData({...formData, appointment_date_time: e.target.value})} />
+              </div>
+              <div className="space-y-1 col-span-2 flex items-center gap-2 bg-white/5 p-3 rounded-lg border border-white/10">
+                <input type="checkbox" className="w-5 h-5 accent-red-500 rounded bg-[#111]" checked={formData.is_repeat} onChange={e => setFormData({...formData, is_repeat: e.target.checked})} />
+                <label className="text-sm font-medium text-white">Repeat Customer (Mark if this is a returning client)</label>
               </div>
               
-              <div className="pt-2">
-                <button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white p-3 rounded-lg font-medium transition-colors" disabled={isSubmitting}>
-                  {isSubmitting ? 'Saving...' : 'Save Entry'}
+              <div className="col-span-2 mt-4">
+                <button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white p-4 rounded-xl font-medium text-lg transition-colors" disabled={isSubmitting}>
+                  {isSubmitting ? 'Saving...' : 'Save Customer Data'}
                 </button>
               </div>
             </form>
