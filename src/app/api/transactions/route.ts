@@ -1,34 +1,38 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/server';
 
 export async function POST(request: Request) {
   try {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const { data: profile } = await supabase.from('profiles').select('custom_persona_name').eq('id', user.id).single();
+    const customPersonaName = profile?.custom_persona_name || 'Deepa';
+
     const body = await request.json();
     const { type, amount, description, linked_staff_name } = body;
 
-    if (!amount || isNaN(amount)) {
-      return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
-    }
+    const isSpecialPersona = linked_staff_name === customPersonaName;
 
-    if (type === 'earning') {
-      const { error } = await supabase.from('earnings').insert([{ 
-        amount, 
-        description: description || 'New Earning',
-        linked_staff_name: linked_staff_name || null 
-      }]);
-      if (error) throw error;
-    } else if (type === 'expense') {
-      const { error } = await supabase.from('expenses').insert([{ 
-        amount, 
-        category: 'General', 
-        description: description || 'New Expense' 
-      }]);
-      if (error) throw error;
-    } else {
-      return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
-    }
+    // Type must be 'Earning' or 'Expense' from the form
+    const mappedType = type.toLowerCase() === 'earning' ? 'Earning' : 'Expense';
 
-    return NextResponse.json({ success: true });
+    const { data, error } = await supabase
+      .from('financial_records')
+      .insert([{
+        user_id: user.id,
+        type: mappedType,
+        amount: parseFloat(amount),
+        description,
+        staff_name: linked_staff_name,
+        is_special_persona: isSpecialPersona
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return NextResponse.json(data);
   } catch (error) {
     console.error('Failed to create transaction:', error);
     return NextResponse.json({ error: 'Failed to create transaction' }, { status: 500 });

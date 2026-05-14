@@ -29,7 +29,7 @@ export default function Dashboard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    fetch('/api/dashboard')
+    fetch('/api/dashboard?is_special_persona=false')
       .then(res => res.json())
       .then(json => {
         setData(json);

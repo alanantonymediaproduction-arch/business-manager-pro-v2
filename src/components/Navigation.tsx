@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
+import { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, 
   Users, 
@@ -10,11 +11,21 @@ import {
   ReceiptText, 
   BarChart3, 
   Bell,
-  LogOut
+  LogOut,
+  Settings
 } from 'lucide-react';
 
 export default function Navigation() {
   const pathname = usePathname();
+  const [personaName, setPersonaName] = useState('Deepa');
+
+  useEffect(() => {
+    fetch('/api/profile')
+      .then(res => res.json())
+      .then(data => {
+        if (data?.custom_persona_name) setPersonaName(data.custom_persona_name);
+      });
+  }, []);
 
   return (
     <header className="flex justify-between items-center p-5 px-8 border-b border-white/10 bg-[#1c1c1c]">
@@ -27,22 +38,16 @@ export default function Navigation() {
       
       <nav className="flex gap-6">
         <Link href="/" className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md transition-colors ${pathname === '/' ? 'text-white bg-white/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
-          <LayoutDashboard size={16} /> Dashboard
+          <LayoutDashboard size={16} /> Main Dashboard
         </Link>
         <Link href="/dashboard/deepa" className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md transition-colors ${pathname === '/dashboard/deepa' ? 'text-white bg-red-600' : 'text-red-400 hover:text-white hover:bg-red-600/50'}`}>
-          <LayoutDashboard size={16} /> Deepa Dashboard
+          <LayoutDashboard size={16} /> {personaName} Dashboard
         </Link>
         <Link href="/customers" className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md transition-colors ${pathname === '/customers' ? 'text-white bg-white/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
           <Users size={16} /> Customers
         </Link>
-        <Link href="/staff" className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md transition-colors ${pathname === '/staff' ? 'text-white bg-white/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
-          <BadgeCheck size={16} /> Staff
-        </Link>
-        <Link href="/expenses" className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md transition-colors ${pathname === '/expenses' ? 'text-white bg-white/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
-          <ReceiptText size={16} /> Expenses
-        </Link>
-        <Link href="/reports" className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md transition-colors ${pathname === '/reports' ? 'text-white bg-white/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
-          <BarChart3 size={16} /> Reports
+        <Link href="/settings" className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md transition-colors ${pathname === '/settings' ? 'text-white bg-white/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
+          <Settings size={16} /> Settings
         </Link>
       </nav>
 

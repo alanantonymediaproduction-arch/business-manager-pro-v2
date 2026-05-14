@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/server';
 
 export async function GET(request: Request) {
   try {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
     const { searchParams } = new URL(request.url);
-    const linkedStaff = searchParams.get('linked_staff_name'); // For Deepa's Dashboard
+    const fetchSpecialPersona = searchParams.get('is_special_persona') === 'true'; 
 
     // Today's boundaries
     const startOfDay = new Date();
@@ -12,67 +16,62 @@ export async function GET(request: Request) {
     const endOfDay = new Date();
     endOfDay.setHours(23, 59, 59, 999);
 
-    let customersQuery = supabase.from('customers').select('*');
-    let expensesQuery = supabase.from('expenses').select('*');
-    let paymentsQuery = supabase.from('payments').select('id', { count: 'exact' }).eq('status', 'pending');
+    // Fetch financial records exclusively for this user (RLS enforces this automatically)
+    // We filter by is_special_persona to isolate the dynamic persona data from general data
+    const { data: financialRecords, error: finError } = await supabase
+      .from('financial_records')
+      .select('*')
+      .eq('is_special_persona', fetchSpecialPersona);
 
-    if (linkedStaff) {
-      customersQuery = customersQuery.eq('staff_name', linkedStaff);
-    } else {
-      customersQuery = customersQuery.neq('staff_name', 'Deepa');
-    }
+    if (finError) throw finError;
 
-    const [
-      { data: customers, error: err1 },
-      { data: expenses, error: err2 },
-      { count: pendingPaymentsCount, error: err4 }
-    ] = await Promise.all([
-      customersQuery,
-      expensesQuery,
-      paymentsQuery
-    ]);
+    const safeRecords = financialRecords || [];
 
-    if (err1 || err2 || err4) throw new Error('Failed fetching from Supabase');
+    // Calculate metrics
+    let todayEarnings = 0;
+    let totalEarnings = 0;
+    let todayCommissions = 0;
+    let totalCommissions = 0;
+    let todayExpenses = 0;
+    let totalExpenses = 0;
 
-    const safeCustomers = customers || [];
-    const safeExpenses = expenses || [];
+    const chartDataMap: Record<string, number> = {};
 
-    // Customer financial aggregation
-    const todayEarnings = safeCustomers.filter(c => new Date(c.created_at) >= startOfDay && new Date(c.created_at) <= endOfDay)
-                                     .reduce((sum, c) => sum + Number(c.total_paid_amount || 0), 0);
-    const totalEarnings = safeCustomers.reduce((sum, c) => sum + Number(c.total_paid_amount || 0), 0);
-    
-    const todayCommissions = safeCustomers.filter(c => new Date(c.created_at) >= startOfDay && new Date(c.created_at) <= endOfDay)
-                                           .reduce((sum, c) => sum + Number(c.amount_paid_to_staff || 0), 0);
-    const totalCommissions = safeCustomers.reduce((sum, c) => sum + Number(c.amount_paid_to_staff || 0), 0);
+    safeRecords.forEach(record => {
+      const recordDate = new Date(record.created_at);
+      const isToday = recordDate >= startOfDay && recordDate <= endOfDay;
+      const amount = Number(record.amount);
+      const isEarning = record.type === 'Earning';
+      const isCommission = record.type === 'Commission';
+      const isExpense = record.type === 'Expense';
 
-    const todayExpenses = safeExpenses.filter(e => new Date(e.created_at) >= startOfDay && new Date(e.created_at) <= endOfDay)
-                                     .reduce((sum, e) => sum + Number(e.amount), 0);
+      if (isEarning) {
+        totalEarnings += amount;
+        if (isToday) todayEarnings += amount;
+      }
+      if (isCommission) {
+        totalCommissions += amount;
+        if (isToday) todayCommissions += amount;
+      }
+      if (isExpense) {
+        totalExpenses += amount;
+        if (isToday) todayExpenses += amount;
+      }
 
-    // Company Share = Total Paid Amount - Amount Paid to Staff
+      // Chart Data Calculation
+      const dayKey = recordDate.toLocaleDateString('en-US', { weekday: 'short' });
+      if (!chartDataMap[dayKey]) chartDataMap[dayKey] = 0;
+      if (isEarning) chartDataMap[dayKey] += amount;
+      if (isCommission) chartDataMap[dayKey] -= amount; // Net Company Share for that day
+    });
+
     const companyShare = totalEarnings - totalCommissions;
-    
-    // Net profit accounts for general expenses too
-    const totalExpenses = safeExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
     const netProfit = companyShare - totalExpenses;
 
-    // Generate chart data for last 7 days (based on Company Share)
-    const chartData = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const dayStart = new Date(d); dayStart.setHours(0,0,0,0);
-      const dayEnd = new Date(d); dayEnd.setHours(23,59,59,999);
-      
-      const dayTotal = safeCustomers
-        .filter(c => new Date(c.created_at) >= dayStart && new Date(c.created_at) <= dayEnd)
-        .reduce((sum, c) => sum + (Number(c.total_paid_amount || 0) - Number(c.amount_paid_to_staff || 0)), 0);
-        
-      chartData.push({
-        name: d.toLocaleDateString('en-US', { weekday: 'short' }),
-        value: dayTotal
-      });
-    }
+    const chartData = Object.keys(chartDataMap).map(key => ({
+      name: key,
+      value: chartDataMap[key]
+    })).slice(-7); // Get last 7 days roughly
 
     return NextResponse.json({
       todayEarnings,
@@ -81,7 +80,7 @@ export async function GET(request: Request) {
       totalCommissions,
       companyShare,
       todayExpenses,
-      pendingPayments: pendingPaymentsCount || 0,
+      pendingPayments: 0,
       netProfit,
       chartData
     });

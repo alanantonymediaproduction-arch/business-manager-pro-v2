@@ -26,8 +26,16 @@ export default function DeepaDashboard() {
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [personaName, setPersonaName] = useState('Deepa');
+
   useEffect(() => {
-    fetch('/api/dashboard?linked_staff_name=Deepa')
+    fetch('/api/profile')
+      .then(res => res.json())
+      .then(p => {
+        if (p?.custom_persona_name) setPersonaName(p.custom_persona_name);
+      });
+
+    fetch('/api/dashboard?is_special_persona=true')
       .then(res => res.json())
       .then(json => {
         setData(json);
@@ -43,7 +51,7 @@ export default function DeepaDashboard() {
       const response = await fetch('/api/transactions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, amount: parseFloat(amount), description, linked_staff_name: 'Deepa' })
+        body: JSON.stringify({ type, amount: parseFloat(amount), description, linked_staff_name: personaName })
       });
       
       if (response.ok) {
@@ -84,7 +92,7 @@ export default function DeepaDashboard() {
     <div className="min-h-screen bg-black text-white">
       {/* Deepa Dashboard specific simple header */}
       <header className="p-5 px-8 border-b border-white/10 bg-[#1c1c1c] flex justify-between items-center">
-        <span className="text-xl font-bold text-red-500">DEEPA DASHBOARD</span>
+        <span className="text-xl font-bold text-red-500 uppercase">{personaName} DASHBOARD</span>
         <span className="text-sm text-gray-400">Private View</span>
       </header>
 
