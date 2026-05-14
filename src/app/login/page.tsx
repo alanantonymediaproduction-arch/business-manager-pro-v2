@@ -14,6 +14,7 @@ export default function LoginPage() {
     setIsLoading(true);
     // Simulate login
     setTimeout(() => {
+      document.cookie = 'auth=true; path=/';
       setIsLoading(false);
       router.push('/');
     }, 1000);
