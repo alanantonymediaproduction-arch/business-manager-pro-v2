@@ -31,6 +31,7 @@ export async function GET() {
         name: customPersonaName,
         role: 'Special Persona',
         nationality: null,
+        phone_number: null,
         created_at: new Date().toISOString()
       });
     }
@@ -97,7 +98,7 @@ export async function POST(request: Request) {
   try {
     const supabase = await createClient();
     const body = await request.json();
-    const { name, role, nationality } = body;
+    const { name, role, nationality, phone_number } = body;
 
     if (!name || !role) {
       return NextResponse.json({ error: 'Name and role are required' }, { status: 400 });
@@ -105,7 +106,7 @@ export async function POST(request: Request) {
 
     const { data: newStaff, error } = await supabase
       .from('staff')
-      .insert([{ name, role, nationality }])
+      .insert([{ name, role, nationality, phone_number: phone_number || null }])
       .select()
       .single();
 
@@ -124,13 +125,13 @@ export async function PUT(request: Request) {
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
-    const { id, name, role, nationality } = body;
+    const { id, name, role, nationality, phone_number } = body;
 
     if (!id) return NextResponse.json({ error: 'ID is required' }, { status: 400 });
 
     const { data: updatedStaff, error } = await supabase
       .from('staff')
-      .update({ name, role, nationality })
+      .update({ name, role, nationality, phone_number: phone_number || null })
       .eq('id', id)
       .select()
       .single();

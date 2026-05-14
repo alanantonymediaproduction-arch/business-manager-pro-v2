@@ -41,6 +41,11 @@ CREATE TABLE customers (
   is_repeat BOOLEAN DEFAULT false,
   is_mallu BOOLEAN DEFAULT false,
   repeat_count INTEGER DEFAULT 0,
+  service_status TEXT DEFAULT 'Active' CHECK (service_status IN ('Pending', 'In Progress', 'Scheduled', 'Completed', 'Active')),
+  service_channel TEXT DEFAULT 'Physical',
+  last_contact_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  notes TEXT,
+  follow_up_agreed BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -63,6 +68,7 @@ CREATE TABLE staff (
   name TEXT NOT NULL,
   nationality TEXT,
   role TEXT,
+  phone_number TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -76,6 +82,10 @@ CREATE TABLE online_services (
   session_time TEXT,
   payment_method TEXT CHECK (payment_method IN ('Cash', 'Bank Account', 'Google Pay')),
   service_type TEXT CHECK (service_type IN ('Video Call', 'Audio Call', 'Photos + Audio', 'Video Clips + Audio')),
+  service_status TEXT DEFAULT 'Active' CHECK (service_status IN ('Pending', 'In Progress', 'Scheduled', 'Completed', 'Active')),
+  last_contact_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  notes TEXT,
+  follow_up_agreed BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

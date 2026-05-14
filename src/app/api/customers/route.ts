@@ -15,6 +15,7 @@ export async function GET(request: Request) {
     const behavior = searchParams.get('behavior') || '';
     const spending = searchParams.get('spending') || '';
     const sort = searchParams.get('sort') || 'latest';
+    const status = searchParams.get('status') || '';
 
     let query = supabase
       .from('customers')
@@ -41,6 +42,9 @@ export async function GET(request: Request) {
     }
     if (behavior) {
       query = query.eq('behavior', behavior);
+    }
+    if (status) {
+      query = query.eq('service_status', status);
     }
 
     const { data: customers, error } = await query;
@@ -85,7 +89,8 @@ export async function POST(request: Request) {
     const { 
       name, number, staff_name, total_paid_amount, amount_paid_to_staff,
       nationality, age, body_size, behavior, room_number,
-      meeting_duration, appointment_date_time, is_repeat, is_mallu, repeat_count
+      meeting_duration, appointment_date_time, is_repeat, is_mallu, repeat_count,
+      service_status, notes, follow_up_agreed
     } = body;
 
     if (!name || !number) {
@@ -104,7 +109,11 @@ export async function POST(request: Request) {
         appointment_date_time: appointment_date_time || null,
         is_repeat: is_repeat || false,
         is_mallu: is_mallu || false,
-        repeat_count: parseInt(repeat_count) || 0
+        repeat_count: parseInt(repeat_count) || 0,
+        service_status: service_status || 'Active',
+        notes: notes || null,
+        follow_up_agreed: follow_up_agreed || false,
+        last_contact_date: new Date().toISOString()
       }])
       .select()
       .single();
@@ -150,7 +159,7 @@ export async function PUT(request: Request) {
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
-    const { id, name, number, nationality, age, body_size, behavior, room_number, meeting_duration, appointment_date_time, is_repeat, is_mallu, repeat_count } = body;
+    const { id, name, number, nationality, age, body_size, behavior, room_number, meeting_duration, appointment_date_time, is_repeat, is_mallu, repeat_count, service_status, notes, follow_up_agreed } = body;
 
     if (!id) return NextResponse.json({ error: 'ID is required' }, { status: 400 });
 
@@ -166,7 +175,11 @@ export async function PUT(request: Request) {
         appointment_date_time: appointment_date_time || null,
         is_repeat: is_repeat || false,
         is_mallu: is_mallu || false,
-        repeat_count: parseInt(repeat_count) || 0
+        repeat_count: parseInt(repeat_count) || 0,
+        service_status: service_status || 'Active',
+        notes: notes || null,
+        follow_up_agreed: follow_up_agreed || false,
+        last_contact_date: new Date().toISOString()
       })
       .eq('id', id)
       .select()

@@ -13,6 +13,10 @@ interface OnlineService {
   session_time: string | null;
   payment_method: string | null;
   service_type: string | null;
+  service_status: string;
+  notes: string | null;
+  follow_up_agreed: boolean;
+  last_contact_date: string | null;
   created_at: string;
 }
 
@@ -26,7 +30,7 @@ export default function OnlineServicesPage() {
   const [filterPayment, setFilterPayment] = useState('');
   const [filterService, setFilterService] = useState('');
 
-  const emptyForm = { customer_name: '', phone_number: '', amount: '', session_time: '', payment_method: '', service_type: '' };
+  const emptyForm = { customer_name: '', phone_number: '', amount: '', session_time: '', payment_method: '', service_type: '', service_status: 'Active', notes: '', follow_up_agreed: false };
   const [formData, setFormData] = useState(emptyForm);
 
   const fetchData = () => {
@@ -53,7 +57,9 @@ export default function OnlineServicesPage() {
       setFormData({
         customer_name: s.customer_name, phone_number: s.phone_number,
         amount: s.amount.toString(), session_time: s.session_time || '',
-        payment_method: s.payment_method || '', service_type: s.service_type || ''
+        payment_method: s.payment_method || '', service_type: s.service_type || '',
+        service_status: s.service_status || 'Active', notes: s.notes || '',
+        follow_up_agreed: s.follow_up_agreed || false
       });
     } else {
       setEditingId(null);
@@ -246,6 +252,22 @@ export default function OnlineServicesPage() {
                   </select>
                 </div>
               </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div><label className={labelCls}>Status</label>
+                  <select className={inputCls} value={formData.service_status} onChange={e => setFormData({...formData, service_status: e.target.value})}>
+                    <option value="Active">Active</option><option value="Pending">Pending</option>
+                    <option value="In Progress">In Progress</option><option value="Scheduled">Scheduled</option>
+                    <option value="Completed">Completed</option>
+                  </select>
+                </div>
+                <div><label className={labelCls}>Notes</label>
+                  <textarea className={`${inputCls} min-h-[60px] resize-none`} placeholder="Notes..." value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} />
+                </div>
+              </div>
+              <label className="flex items-center gap-3 bg-orange-500/10 p-3 rounded-xl border border-orange-500/20 cursor-pointer">
+                <input type="checkbox" className="w-5 h-5 accent-orange-500 rounded shrink-0" checked={formData.follow_up_agreed} onChange={e => setFormData({...formData, follow_up_agreed: e.target.checked})} />
+                <div><span className="text-sm font-medium text-white">Follow-up Agreed</span><br/><span className="text-xs text-gray-500">30-day reminder</span></div>
+              </label>
             </form>
             <div className="p-4 border-t border-white/10 shrink-0 bg-[#1c1c1c]">
               <button onClick={handleSubmit} className="w-full bg-purple-600 hover:bg-purple-700 text-white p-3.5 rounded-xl font-medium transition-colors" disabled={isSubmitting}>

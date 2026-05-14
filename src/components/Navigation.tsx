@@ -14,7 +14,8 @@ import {
   LogOut,
   Settings,
   Contact,
-  Globe
+  Globe,
+  Activity
 } from 'lucide-react';
 
 export default function Navigation() {
@@ -61,6 +62,9 @@ export default function Navigation() {
         </Link>
         <Link href="/customers" className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md whitespace-nowrap transition-colors ${pathname === '/customers' ? 'text-white bg-white/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
           <Users size={16} /> Customers
+        </Link>
+        <Link href="/lifecycle" className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md whitespace-nowrap transition-colors ${pathname === '/lifecycle' ? 'text-white bg-amber-600' : 'text-amber-400 hover:text-white hover:bg-amber-600/50'}`}>
+          <Activity size={16} /> Lifecycle
         </Link>
         <Link href="/staff" className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md whitespace-nowrap transition-colors ${pathname === '/staff' ? 'text-white bg-white/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
           <Contact size={16} /> Staff

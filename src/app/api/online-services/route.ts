@@ -11,6 +11,7 @@ export async function GET(request: Request) {
     const search = searchParams.get('search') || '';
     const paymentMethod = searchParams.get('paymentMethod') || '';
     const serviceType = searchParams.get('serviceType') || '';
+    const status = searchParams.get('status') || '';
 
     let query = supabase
       .from('online_services')
@@ -26,6 +27,9 @@ export async function GET(request: Request) {
     }
     if (serviceType) {
       query = query.eq('service_type', serviceType);
+    }
+    if (status) {
+      query = query.eq('service_status', status);
     }
 
     const { data, error } = await query;
@@ -44,7 +48,7 @@ export async function POST(request: Request) {
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
-    const { customer_name, phone_number, amount, session_time, payment_method, service_type } = body;
+    const { customer_name, phone_number, amount, session_time, payment_method, service_type, service_status, notes, follow_up_agreed } = body;
 
     if (!customer_name || !phone_number || !amount) {
       return NextResponse.json({ error: 'Name, phone, and amount are required' }, { status: 400 });
@@ -58,7 +62,11 @@ export async function POST(request: Request) {
         amount: parseFloat(amount),
         session_time: session_time || null,
         payment_method: payment_method || null,
-        service_type: service_type || null
+        service_type: service_type || null,
+        service_status: service_status || 'Active',
+        notes: notes || null,
+        follow_up_agreed: follow_up_agreed || false,
+        last_contact_date: new Date().toISOString()
       }])
       .select()
       .single();
@@ -78,7 +86,7 @@ export async function PUT(request: Request) {
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
-    const { id, customer_name, phone_number, amount, session_time, payment_method, service_type } = body;
+    const { id, customer_name, phone_number, amount, session_time, payment_method, service_type, service_status, notes, follow_up_agreed } = body;
     if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
 
     const { data, error } = await supabase
@@ -88,7 +96,11 @@ export async function PUT(request: Request) {
         amount: parseFloat(amount),
         session_time: session_time || null,
         payment_method: payment_method || null,
-        service_type: service_type || null
+        service_type: service_type || null,
+        service_status: service_status || 'Active',
+        notes: notes || null,
+        follow_up_agreed: follow_up_agreed || false,
+        last_contact_date: new Date().toISOString()
       })
       .eq('id', id)
       .eq('user_id', user.id)

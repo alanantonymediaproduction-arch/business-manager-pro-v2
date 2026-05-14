@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
-import { Plus, X, Pencil, Trash2, UserCircle2, Banknote, TrendingUp } from 'lucide-react';
+import { Plus, X, Pencil, Trash2, UserCircle2, Banknote, TrendingUp, MessageCircle } from 'lucide-react';
 
 interface Staff {
   id: string;
   name: string;
   nationality: string | null;
   role: string;
+  phone_number: string | null;
   created_at: string;
   totalCommission?: number;
   todayCommission?: number;
@@ -23,7 +24,7 @@ export default function StaffPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   
-  const [formData, setFormData] = useState({ name: '', nationality: '', role: '' });
+  const [formData, setFormData] = useState({ name: '', nationality: '', role: '', phone_number: '' });
 
   const fetchStaff = () => {
     setLoading(true);
@@ -43,10 +44,10 @@ export default function StaffPage() {
   const openModal = (s?: Staff) => {
     if (s && s.id !== 'special-persona') {
       setEditingId(s.id);
-      setFormData({ name: s.name, nationality: s.nationality || '', role: s.role });
+      setFormData({ name: s.name, nationality: s.nationality || '', role: s.role, phone_number: s.phone_number || '' });
     } else {
       setEditingId(null);
-      setFormData({ name: '', nationality: '', role: '' });
+      setFormData({ name: '', nationality: '', role: '', phone_number: '' });
     }
     setIsModalOpen(true);
   };
@@ -203,13 +204,28 @@ export default function StaffPage() {
                   <span className="text-gray-500">
                     {s.nationality || 'No nationality'}
                   </span>
-                  {s.id === 'special-persona' ? (
-                    <span className="text-xs bg-red-600/20 text-red-400 px-2 py-1 rounded-full">Persona</span>
-                  ) : (
-                    <span className="text-xs text-gray-500">
-                      Joined {new Date(s.created_at).toLocaleDateString()}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {s.phone_number && (
+                      <button
+                        onClick={() => {
+                          const today = new Date().toLocaleDateString();
+                          const msg = `📊 *Daily Report - ${s.name}*%0A📅 ${today}%0A%0A✅ Customers Handled: ${(s.todayEarnings || 0) > 0 ? 'Active' : '0'}%0A💰 Total Earned: ${(s.todayEarnings || 0).toLocaleString()} AED%0A📋 Commission: ${(s.todayCommission || 0).toLocaleString()} AED%0A%0A— BackupPlanPro`;
+                          window.open(`https://wa.me/${(s.phone_number || '').replace(/[^0-9]/g, '')}?text=${msg}`, '_blank');
+                        }}
+                        className="p-1.5 bg-green-600/20 hover:bg-green-600/40 rounded-lg text-green-400 transition-colors"
+                        title="Send daily report via WhatsApp"
+                      >
+                        <MessageCircle size={14} />
+                      </button>
+                    )}
+                    {s.id === 'special-persona' ? (
+                      <span className="text-xs bg-red-600/20 text-red-400 px-2 py-1 rounded-full">Persona</span>
+                    ) : (
+                      <span className="text-xs text-gray-500">
+                        Joined {new Date(s.created_at).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -245,6 +261,11 @@ export default function StaffPage() {
               <div className="space-y-1">
                 <label className="text-sm text-gray-400">Nationality</label>
                 <input type="text" placeholder="e.g. Indian, Filipino" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.nationality} onChange={e => setFormData({...formData, nationality: e.target.value})} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm text-gray-400">Phone Number (WhatsApp)</label>
+                <input type="text" placeholder="e.g. 971501234567" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-green-500" value={formData.phone_number} onChange={e => setFormData({...formData, phone_number: e.target.value})} />
+                <p className="text-xs text-gray-500">Include country code for WhatsApp daily reports</p>
               </div>
               <button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white p-3 rounded-xl font-medium transition-colors mt-4" disabled={isSubmitting}>
                 {isSubmitting ? 'Saving...' : (editingId ? 'Update Staff Profile' : 'Create Staff Profile')}

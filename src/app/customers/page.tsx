@@ -24,6 +24,10 @@ interface Customer {
   total_paid_amount: number;
   amount_paid_to_staff: number;
   staff_name: string | null;
+  service_status: string;
+  notes: string | null;
+  follow_up_agreed: boolean;
+  last_contact_date: string | null;
   created_at: string;
 }
 
@@ -46,7 +50,8 @@ export default function CustomersPage() {
     name: '', number: '', nationality: '', age: '', room_number: '',
     body_size: '', behavior: '', meeting_duration: '',
     appointment_date_time: '', is_repeat: false, is_mallu: false,
-    repeat_count: '0', total_paid_amount: '', amount_paid_to_staff: '', staff_name: ''
+    repeat_count: '0', total_paid_amount: '', amount_paid_to_staff: '', staff_name: '',
+    service_status: 'Active', notes: '', follow_up_agreed: false
   };
   const [formData, setFormData] = useState(emptyForm);
 
@@ -88,7 +93,10 @@ export default function CustomersPage() {
         repeat_count: c.repeat_count?.toString() || '0',
         total_paid_amount: c.total_paid_amount?.toString() || '0',
         amount_paid_to_staff: c.amount_paid_to_staff?.toString() || '0',
-        staff_name: c.staff_name || ''
+        staff_name: c.staff_name || '',
+        service_status: c.service_status || 'Active',
+        notes: c.notes || '',
+        follow_up_agreed: c.follow_up_agreed || false
       });
     } else {
       setEditingId(null);
@@ -229,6 +237,7 @@ export default function CustomersPage() {
                   {c.is_mallu && <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">Mallu</span>}
                   {c.behavior && <span className={`text-[10px] px-2 py-0.5 rounded-full ${c.behavior === 'Very Good' ? 'bg-green-500/20 text-green-400' : c.behavior === 'Good' ? 'bg-blue-500/20 text-blue-300' : 'bg-red-500/20 text-red-400'}`}>{c.behavior}</span>}
                   {c.body_size && <span className="text-[10px] bg-white/10 text-gray-300 px-2 py-0.5 rounded-full">{c.body_size}</span>}
+                  {c.service_status && <span className={`text-[10px] px-2 py-0.5 rounded-full ${c.service_status === 'Completed' ? 'bg-green-500/20 text-green-400' : c.service_status === 'In Progress' ? 'bg-cyan-500/20 text-cyan-400' : c.service_status === 'Pending' ? 'bg-orange-500/20 text-orange-400' : 'bg-white/10 text-gray-300'}`}>{c.service_status}</span>}
                 </div>
 
                 {/* Stats Grid */}
@@ -344,6 +353,29 @@ export default function CustomersPage() {
               {formData.is_repeat && (
                 <div className="max-w-xs"><label className={labelCls}>Visit Count</label><input type="number" min="0" className={inputCls} value={formData.repeat_count} onChange={e => setFormData({...formData, repeat_count: e.target.value})} /></div>
               )}
+
+              {/* Service Status & Notes */}
+              <div>
+                <h3 className="text-sm font-semibold text-gray-300 mb-3">🔄 Service Status</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div><label className={labelCls}>Status</label>
+                    <select className={inputCls} value={formData.service_status} onChange={e => setFormData({...formData, service_status: e.target.value})}>
+                      <option value="Active">Active</option><option value="Pending">Pending</option>
+                      <option value="In Progress">In Progress</option><option value="Scheduled">Scheduled</option>
+                      <option value="Completed">Completed</option>
+                    </select>
+                  </div>
+                  <div><label className={labelCls}>Notes</label>
+                    <textarea className={`${inputCls} min-h-[80px] resize-none`} placeholder="Any notes about this customer..." value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Follow-up */}
+              <label className="flex items-center gap-3 bg-orange-500/10 p-3 rounded-xl border border-orange-500/20 cursor-pointer">
+                <input type="checkbox" className="w-5 h-5 accent-orange-500 rounded shrink-0" checked={formData.follow_up_agreed} onChange={e => setFormData({...formData, follow_up_agreed: e.target.checked})} />
+                <div><span className="text-sm font-medium text-white">Follow-up Agreed</span><br/><span className="text-xs text-gray-500">Customer agrees for follow-up call (30-day reminder)</span></div>
+              </label>
             </form>
 
             {/* Sticky Submit */}
