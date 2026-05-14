@@ -75,7 +75,7 @@ export default function Dashboard() {
   if ('error' in data) {
     return <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-4">
       <div className="text-red-500 text-xl font-semibold">Error Loading Dashboard</div>
-      <div className="text-gray-400">{(data as any).error}</div>
+      <div className="text-gray-400">{(data as { error?: string }).error}</div>
       <div className="text-sm text-gray-500 mt-4 max-w-md text-center">
         Make sure you have run the latest schema.sql in your Supabase SQL Editor.
       </div>
@@ -90,7 +90,7 @@ export default function Dashboard() {
         <div className="flex justify-between items-end mb-8">
           <div>
             <h1 className="text-3xl font-semibold mb-1">Welcome back</h1>
-            <p className="text-gray-400 text-sm">Here's your high-level overview for today.</p>
+            <p className="text-gray-400 text-sm">Here&apos;s your high-level overview for today.</p>
           </div>
           <div className="flex items-center bg-[#1c1c1c] border border-white/10 rounded-lg px-4 py-2 w-64">
             <Search size={16} className="text-gray-400 mr-2" />

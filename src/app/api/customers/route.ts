@@ -21,11 +21,11 @@ export async function GET() {
     // Map financial records back to the flat format the UI expects for this specific user
     const formattedCustomers = customers.map(c => {
       const records = c.financial_records || [];
-      const total_paid_amount = records.filter((r: any) => r.type === 'Earning').reduce((sum: number, r: any) => sum + Number(r.amount), 0);
-      const amount_paid_to_staff = records.filter((r: any) => r.type === 'Commission').reduce((sum: number, r: any) => sum + Number(r.amount), 0);
+      const total_paid_amount = records.filter((r: { type: string, amount: string | number }) => r.type === 'Earning').reduce((sum: number, r: { amount: string | number }) => sum + Number(r.amount), 0);
+      const amount_paid_to_staff = records.filter((r: { type: string, amount: string | number }) => r.type === 'Commission').reduce((sum: number, r: { amount: string | number }) => sum + Number(r.amount), 0);
       
       // Determine staff_name (we just take the first commission staff name if it exists)
-      const staff_name = records.find((r: any) => r.type === 'Commission')?.staff_name || null;
+      const staff_name = records.find((r: { type: string, staff_name: string }) => r.type === 'Commission')?.staff_name || null;
 
       return {
         ...c,

@@ -43,11 +43,6 @@ export default function CustomersPage() {
     amount_paid_to_staff: '', staff_name: ''
   });
 
-  useEffect(() => {
-    fetchCustomers();
-    fetchStaff();
-  }, []);
-
   const fetchCustomers = () => {
     fetch('/api/customers')
       .then(res => res.json())
@@ -64,6 +59,11 @@ export default function CustomersPage() {
         if (Array.isArray(data)) setStaffList(data);
       });
   };
+
+  useEffect(() => {
+    fetchCustomers();
+    fetchStaff();
+  }, []);
 
   const openModal = (customer?: Customer) => {
     if (customer) {

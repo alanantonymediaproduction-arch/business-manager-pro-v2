@@ -7,7 +7,8 @@ export async function GET() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    let { data: profile, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+    const { data: profileData, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+    let profile = profileData;
 
     // If profile doesn't exist, create it (auto-provisioning)
     if (error && error.code === 'PGRST116') {

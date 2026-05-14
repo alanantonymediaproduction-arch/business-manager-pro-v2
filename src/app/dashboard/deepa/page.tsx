@@ -81,7 +81,7 @@ export default function DeepaDashboard() {
   if ('error' in data) {
     return <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-4">
       <div className="text-red-500 text-xl font-semibold">Error Loading Dashboard</div>
-      <div className="text-gray-400">{(data as any).error}</div>
+      <div className="text-gray-400">{(data as { error?: string }).error}</div>
       <div className="text-sm text-gray-500 mt-4 max-w-md text-center">
         Make sure you have run the latest schema.sql in your Supabase SQL Editor.
       </div>
