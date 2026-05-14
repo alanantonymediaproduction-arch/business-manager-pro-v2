@@ -1,5 +1,21 @@
 -- Supabase SQL Schema for BackupPlanPro
 
+-- ==========================================
+-- 1. CLEANUP PREVIOUS TABLES (If they exist)
+-- ==========================================
+DROP TABLE IF EXISTS financial_records CASCADE;
+DROP TABLE IF EXISTS customers CASCADE;
+DROP TABLE IF EXISTS profiles CASCADE;
+DROP TABLE IF EXISTS staff CASCADE;
+DROP TABLE IF EXISTS earnings CASCADE;
+DROP TABLE IF EXISTS commissions CASCADE;
+DROP TABLE IF EXISTS expenses CASCADE;
+DROP TABLE IF EXISTS payments CASCADE;
+
+-- ==========================================
+-- 2. CREATE NEW MULTI-TENANT ARCHITECTURE
+-- ==========================================
+
 -- User Profiles (Linked to Supabase Auth)
 CREATE TABLE profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
@@ -46,11 +62,17 @@ CREATE TABLE staff (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Enable RLS
+-- ==========================================
+-- 3. ENABLE ROW LEVEL SECURITY (RLS)
+-- ==========================================
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE financial_records ENABLE ROW LEVEL SECURITY;
 ALTER TABLE staff ENABLE ROW LEVEL SECURITY;
+
+-- ==========================================
+-- 4. APPLY SECURITY POLICIES
+-- ==========================================
 
 -- Shared Customer Pool Policies
 CREATE POLICY "Enable read access for all authenticated users" ON customers FOR SELECT USING (auth.role() = 'authenticated');
