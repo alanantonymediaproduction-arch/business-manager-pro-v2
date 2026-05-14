@@ -66,7 +66,19 @@ export default function DeepaDashboard() {
     }
   };
 
-  if (loading || !data) return <div className="min-h-screen bg-black text-white flex items-center justify-center">Loading...</div>;
+  if (loading || !data) {
+    return <div className="min-h-screen bg-black text-white flex items-center justify-center">Loading...</div>;
+  }
+
+  if ('error' in data) {
+    return <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-4">
+      <div className="text-red-500 text-xl font-semibold">Error Loading Dashboard</div>
+      <div className="text-gray-400">{(data as any).error}</div>
+      <div className="text-sm text-gray-500 mt-4 max-w-md text-center">
+        Make sure you have run the latest schema.sql in your Supabase SQL Editor.
+      </div>
+    </div>;
+  }
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -110,7 +122,7 @@ export default function DeepaDashboard() {
               <span className="text-gray-400 text-sm font-medium">Company Share</span>
               <TrendingUp size={16} className="text-gray-400" />
             </div>
-            <div className="text-3xl font-semibold mb-2">${data.companyShare.toLocaleString()}</div>
+            <div className="text-3xl font-semibold mb-2">${(data.companyShare || 0).toLocaleString()}</div>
           </div>
         </div>
       </main>

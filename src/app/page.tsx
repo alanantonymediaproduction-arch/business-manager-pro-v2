@@ -72,6 +72,16 @@ export default function Dashboard() {
     return <div className="min-h-screen bg-black text-white flex items-center justify-center">Loading...</div>;
   }
 
+  if ('error' in data) {
+    return <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-4">
+      <div className="text-red-500 text-xl font-semibold">Error Loading Dashboard</div>
+      <div className="text-gray-400">{(data as any).error}</div>
+      <div className="text-sm text-gray-500 mt-4 max-w-md text-center">
+        Make sure you have run the latest schema.sql in your Supabase SQL Editor.
+      </div>
+    </div>;
+  }
+
   return (
     <div className="min-h-screen bg-black text-white">
       <Navigation />
@@ -157,7 +167,7 @@ export default function Dashboard() {
             <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-5 flex justify-between items-center">
               <div className="flex flex-col gap-1">
                 <span className="text-gray-400 text-sm font-bold text-blue-400">Company Share</span>
-                <span className="text-2xl font-semibold">${data.companyShare.toLocaleString()}</span>
+                <span className="text-2xl font-semibold">${(data.companyShare || 0).toLocaleString()}</span>
               </div>
               <div className="bg-white/10 w-10 h-10 rounded-lg flex justify-center items-center">
                 <TrendingUp size={20} className="text-white" />
