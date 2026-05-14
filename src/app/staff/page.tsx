@@ -52,9 +52,9 @@ export default function StaffPage() {
     <div className="min-h-screen bg-black text-white">
       <Navigation />
       <main className="p-8 max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-semibold">Staff Profiles</h1>
-          <button onClick={() => setIsModalOpen(true)} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+          <h1 className="text-2xl md:text-3xl font-semibold">Staff Profiles</h1>
+          <button onClick={() => setIsModalOpen(true)} className="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors">
             <Plus size={16} /> Add Staff
           </button>
         </div>

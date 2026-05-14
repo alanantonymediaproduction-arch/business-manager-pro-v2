@@ -87,19 +87,19 @@ export default function Dashboard() {
       <Navigation />
 
       <main className="p-8 max-w-7xl mx-auto">
-        <div className="flex justify-between items-end mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-semibold mb-1">Welcome back</h1>
+            <h1 className="text-2xl md:text-3xl font-semibold mb-1">Welcome back</h1>
             <p className="text-gray-400 text-sm">Here&apos;s your high-level overview for today.</p>
           </div>
-          <div className="flex items-center bg-[#1c1c1c] border border-white/10 rounded-lg px-4 py-2 w-64">
+          <div className="flex items-center bg-[#1c1c1c] border border-white/10 rounded-lg px-4 py-2 w-full md:w-64">
             <Search size={16} className="text-gray-400 mr-2" />
             <input type="text" placeholder="Quick search..." className="bg-transparent border-none text-white w-full text-sm focus:outline-none" />
           </div>
         </div>
 
         {/* KPI Grid */}
-        <div className="grid grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
           <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-6 flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <span className="text-gray-400 text-sm font-medium">Today Earnings</span>
@@ -139,8 +139,8 @@ export default function Dashboard() {
         </div>
 
         {/* Content Grid */}
-        <div className="grid grid-cols-3 gap-6">
-          <div className="col-span-2 bg-[#1c1c1c] border border-white/10 rounded-2xl p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 bg-[#1c1c1c] border border-white/10 rounded-2xl p-6">
             <div className="flex justify-between items-center mb-8">
               <span className="text-lg font-semibold">Daily Earnings Overview</span>
               <button className="text-gray-400 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors">

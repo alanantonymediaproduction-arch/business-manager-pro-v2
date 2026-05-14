@@ -186,13 +186,13 @@ export default function CustomersPage() {
     <div className="min-h-screen bg-black text-white">
       <Navigation />
       <main className="p-8 max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-semibold">Customers</h1>
-          <div className="flex gap-4">
-            <button onClick={exportCSV} className="bg-[#1c1c1c] border border-white/10 hover:bg-white/5 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+          <h1 className="text-2xl md:text-3xl font-semibold">Customers</h1>
+          <div className="flex gap-2 md:gap-4 w-full md:w-auto">
+            <button onClick={exportCSV} className="flex-1 md:flex-none bg-[#1c1c1c] border border-white/10 hover:bg-white/5 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors">
               Download CSV
             </button>
-            <button onClick={() => openModal()} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+            <button onClick={() => openModal()} className="flex-1 md:flex-none bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors">
               <Plus size={16} /> Add Customer
             </button>
           </div>
@@ -322,10 +322,10 @@ export default function CustomersPage() {
               <h2 className="text-xl font-semibold">{editingId ? 'Edit Customer' : 'Add New Customer'}</h2>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white"><X size={20} /></button>
             </div>
-            <form className="p-6 grid grid-cols-2 gap-x-6 gap-y-4" onSubmit={handleSubmit}>
+            <form className="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4" onSubmit={handleSubmit}>
               
               {/* Financial & Assignment Section */}
-              <div className="col-span-2 grid grid-cols-3 gap-4 p-4 bg-white/5 rounded-xl mb-2">
+              <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-white/5 rounded-xl mb-2">
                 <div className="space-y-1">
                   <label className="text-sm text-gray-400">Staff Assigned</label>
                   <select className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.staff_name} onChange={e => setFormData({...formData, staff_name: e.target.value})}>
@@ -395,12 +395,12 @@ export default function CustomersPage() {
                 <label className="text-sm text-gray-400">Appointment Date/Time</label>
                 <input type="datetime-local" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.appointment_date_time} onChange={e => setFormData({...formData, appointment_date_time: e.target.value})} />
               </div>
-              <div className="space-y-1 col-span-2 flex items-center gap-2 bg-white/5 p-3 rounded-lg border border-white/10">
-                <input type="checkbox" className="w-5 h-5 accent-red-500 rounded bg-[#111]" checked={formData.is_repeat} onChange={e => setFormData({...formData, is_repeat: e.target.checked})} />
+              <div className="space-y-1 col-span-1 md:col-span-2 flex items-start md:items-center gap-2 bg-white/5 p-3 rounded-lg border border-white/10">
+                <input type="checkbox" className="w-5 h-5 mt-0.5 md:mt-0 accent-red-500 rounded bg-[#111] shrink-0" checked={formData.is_repeat} onChange={e => setFormData({...formData, is_repeat: e.target.checked})} />
                 <label className="text-sm font-medium text-white">Repeat Customer (Mark if this is a returning client)</label>
               </div>
               
-              <div className="col-span-2 mt-4">
+              <div className="col-span-1 md:col-span-2 mt-4">
                 <button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white p-4 rounded-xl font-medium text-lg transition-colors" disabled={isSubmitting}>
                   {isSubmitting ? 'Saving...' : 'Save Customer Data'}
                 </button>
