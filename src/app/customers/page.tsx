@@ -290,8 +290,8 @@ export default function CustomersPage() {
                     <td className="p-4 font-medium">{c.name}</td>
                     <td className="p-4 text-gray-400">{c.number}</td>
                     <td className="p-4 text-gray-400">{c.staff_name || '-'}</td>
-                    <td className="p-4 font-semibold text-green-500">${Number(c.total_paid_amount || 0).toLocaleString()}</td>
-                    <td className="p-4 font-semibold text-red-500">${Number(c.amount_paid_to_staff || 0).toLocaleString()}</td>
+                    <td className="p-4 font-semibold text-green-500">{Number(c.total_paid_amount || 0).toLocaleString()} AED</td>
+                    <td className="p-4 font-semibold text-red-500">{Number(c.amount_paid_to_staff || 0).toLocaleString()} AED</td>
                     <td className="p-4 text-right">
                       <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={() => openModal(c)} className="p-2 bg-white/5 hover:bg-white/10 rounded text-gray-300">
@@ -336,11 +336,11 @@ export default function CustomersPage() {
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-sm text-gray-400 font-bold text-green-500">Total Paid Amount ($)</label>
+                  <label className="text-sm text-gray-400 font-bold text-green-500">Total Paid Amount (AED)</label>
                   <input type="number" step="0.01" className="w-full bg-[#111] border border-green-500/30 rounded-lg p-3 text-white focus:outline-none focus:border-green-500" value={formData.total_paid_amount} onChange={e => setFormData({...formData, total_paid_amount: e.target.value})} />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-sm text-gray-400 font-bold text-red-500">Amount Paid to Staff ($)</label>
+                  <label className="text-sm text-gray-400 font-bold text-red-500">Amount Paid to Staff (AED)</label>
                   <input type="number" step="0.01" className="w-full bg-[#111] border border-red-500/30 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.amount_paid_to_staff} onChange={e => setFormData({...formData, amount_paid_to_staff: e.target.value})} />
                 </div>
               </div>

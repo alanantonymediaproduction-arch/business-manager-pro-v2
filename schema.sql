@@ -87,8 +87,14 @@ CREATE POLICY "Users can delete their own financial records" ON financial_record
 
 -- Profile Policies
 CREATE POLICY "Users can view their own profile" ON profiles FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can insert their own profile" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
 CREATE POLICY "Users can update their own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
 
 -- Staff Policies (Shared)
 CREATE POLICY "Enable read access for all authenticated users on staff" ON staff FOR SELECT USING (auth.role() = 'authenticated');
 CREATE POLICY "Enable insert for authenticated users on staff" ON staff FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "Enable update for authenticated users on staff" ON staff FOR UPDATE USING (auth.role() = 'authenticated');
+CREATE POLICY "Enable delete for authenticated users on staff" ON staff FOR DELETE USING (auth.role() = 'authenticated');
+
+-- Customers DELETE Policy
+CREATE POLICY "Enable delete for authenticated users" ON customers FOR DELETE USING (auth.role() = 'authenticated');

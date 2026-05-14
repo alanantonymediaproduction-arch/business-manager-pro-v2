@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Banknote, Tag, Building2, Trophy, TrendingUp, MoreVertical, Plus, Hourglass, ReceiptText, X } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { Banknote, Tag, Building2, TrendingUp, Plus, X } from 'lucide-react';
+import Navigation from '@/components/Navigation';
 
 interface DashboardData {
   todayEarnings: number;
@@ -90,19 +90,15 @@ export default function DeepaDashboard() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Deepa Dashboard specific simple header */}
-      <header className="p-5 px-8 border-b border-white/10 bg-[#1c1c1c] flex justify-between items-center">
-        <span className="text-xl font-bold text-red-500 uppercase">{personaName} DASHBOARD</span>
-        <span className="text-sm text-gray-400">Private View</span>
-      </header>
+      <Navigation />
 
-      <main className="p-8 max-w-7xl mx-auto">
+      <main className="p-4 md:p-8 max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-semibold mb-1">Your Overview</h1>
-          <p className="text-gray-400 text-sm">Financial metrics directly linked to your profile.</p>
+          <h1 className="text-2xl md:text-3xl font-semibold mb-1">{personaName}&apos;s Overview</h1>
+          <p className="text-gray-400 text-sm">Financial metrics directly linked to this persona.</p>
         </div>
 
-        <div className="grid grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
           <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-6 flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <span className="text-gray-400 text-sm font-medium">Your Earnings Today</span>
@@ -155,7 +151,7 @@ export default function DeepaDashboard() {
                 </select>
               </div>
               <div className="space-y-1">
-                <label className="text-sm text-gray-400">Amount ($)</label>
+                <label className="text-sm text-gray-400">Amount (AED)</label>
                 <input required type="number" step="0.01" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={amount} onChange={e => setAmount(e.target.value)} />
               </div>
               <div className="space-y-1">

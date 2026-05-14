@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Pencil, Trash2, UserCircle2 } from 'lucide-react';
 
 interface Staff {
   id: string;
@@ -17,98 +17,175 @@ export default function StaffPage() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({ name: '', nationality: '', role: '' });
 
-  useEffect(() => {
+  const fetchStaff = () => {
+    setLoading(true);
     fetch('/api/staff')
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) setStaff(data);
         setLoading(false);
-      });
+      })
+      .catch(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchStaff();
   }, []);
+
+  const openModal = (s?: Staff) => {
+    if (s && s.id !== 'special-persona') {
+      setEditingId(s.id);
+      setFormData({ name: s.name, nationality: s.nationality || '', role: s.role });
+    } else {
+      setEditingId(null);
+      setFormData({ name: '', nationality: '', role: '' });
+    }
+    setIsModalOpen(true);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const response = await fetch('/api/staff', {
-        method: 'POST',
+      const url = '/api/staff';
+      const method = editingId ? 'PUT' : 'POST';
+      const body = editingId ? { id: editingId, ...formData } : formData;
+
+      const response = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(body)
       });
+      
       if (response.ok) {
-        const newStaff = await response.json();
-        setStaff(prev => [newStaff, ...prev]);
         setIsModalOpen(false);
+        fetchStaff();
       }
+    } catch (error) {
+      console.error(error);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this staff member?')) return;
+    try {
+      const response = await fetch(`/api/staff?id=${id}`, { method: 'DELETE' });
+      if (response.ok) {
+        setStaff(prev => prev.filter(s => s.id !== id));
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 
   return (
     <div className="min-h-screen bg-black text-white">
       <Navigation />
-      <main className="p-8 max-w-7xl mx-auto">
+      <main className="p-4 md:p-8 max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-          <h1 className="text-2xl md:text-3xl font-semibold">Staff Profiles</h1>
-          <button onClick={() => setIsModalOpen(true)} className="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors">
-            <Plus size={16} /> Add Staff
+          <div>
+            <h1 className="text-2xl md:text-3xl font-semibold">Staff Profiles</h1>
+            <p className="text-gray-400 text-sm mt-1">Manage your team members and their roles.</p>
+          </div>
+          <button onClick={() => openModal()} className="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-xl flex items-center justify-center gap-2 transition-colors font-medium">
+            <Plus size={18} /> Create Staff Profile
           </button>
         </div>
 
-        <div className="bg-[#111] border border-white/10 rounded-2xl overflow-x-auto">
-          {loading ? (
-            <div className="p-8 text-center text-gray-400">Loading staff...</div>
-          ) : (
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-white/10 text-gray-400 text-sm">
-                  <th className="p-4 font-medium">Name</th>
-                  <th className="p-4 font-medium">Role</th>
-                  <th className="p-4 font-medium">Nationality</th>
-                  <th className="p-4 font-medium">Joined</th>
-                </tr>
-              </thead>
-              <tbody>
-                {staff.map(s => (
-                  <tr key={s.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                    <td className="p-4 font-medium">{s.name}</td>
-                    <td className="p-4 text-gray-400">{s.role}</td>
-                    <td className="p-4 text-gray-400">{s.nationality || '-'}</td>
-                    <td className="p-4 text-gray-400">{new Date(s.created_at).toLocaleDateString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+        {/* Staff Grid - Card Layout */}
+        {loading ? (
+          <div className="p-8 text-center text-gray-400">Loading staff...</div>
+        ) : staff.length === 0 ? (
+          <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-12 text-center">
+            <UserCircle2 size={48} className="mx-auto text-gray-600 mb-4" />
+            <h3 className="text-lg font-medium text-gray-300 mb-2">No Staff Profiles Yet</h3>
+            <p className="text-gray-500 text-sm mb-6">Create your first staff profile to get started.</p>
+            <button onClick={() => openModal()} className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl transition-colors font-medium">
+              <Plus size={16} className="inline mr-2" /> Add First Staff
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {staff.map(s => (
+              <div key={s.id} className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-colors group">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${s.id === 'special-persona' ? 'bg-red-600/20 text-red-400' : 'bg-white/10 text-white'}`}>
+                      {s.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white">{s.name}</h3>
+                      <p className="text-sm text-gray-400">{s.role}</p>
+                    </div>
+                  </div>
+                  
+                  {s.id !== 'special-persona' && (
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => openModal(s)} className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-gray-300 transition-colors">
+                        <Pencil size={14} />
+                      </button>
+                      <button onClick={() => handleDelete(s.id)} className="p-2 bg-red-500/10 hover:bg-red-500/20 rounded-lg text-red-500 transition-colors">
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-500">
+                    {s.nationality || 'No nationality'}
+                  </span>
+                  {s.id === 'special-persona' ? (
+                    <span className="text-xs bg-red-600/20 text-red-400 px-2 py-1 rounded-full">Persona</span>
+                  ) : (
+                    <span className="text-xs text-gray-500">
+                      Joined {new Date(s.created_at).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </main>
 
+      {/* Add / Edit Staff Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center z-50 p-4" onClick={() => setIsModalOpen(false)}>
           <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
             <div className="p-6 border-b border-white/10 flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Add New Staff</h2>
+              <h2 className="text-xl font-semibold">{editingId ? 'Edit Staff Profile' : 'Create Staff Profile'}</h2>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white"><X size={20} /></button>
             </div>
             <form className="p-6 space-y-4" onSubmit={handleSubmit}>
               <div className="space-y-1">
-                <label className="text-sm text-gray-400">Name</label>
-                <input required type="text" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                <label className="text-sm text-gray-400">Full Name</label>
+                <input required type="text" placeholder="e.g. Ahmed Khan" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
               </div>
               <div className="space-y-1">
-                <label className="text-sm text-gray-400">Role</label>
-                <input required type="text" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" placeholder="e.g. Sales, Support" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} />
+                <label className="text-sm text-gray-400">Role / Position</label>
+                <select className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})}>
+                  <option value="">Select Role...</option>
+                  <option value="Manager">Manager</option>
+                  <option value="Sales">Sales</option>
+                  <option value="Support">Support</option>
+                  <option value="Driver">Driver</option>
+                  <option value="Receptionist">Receptionist</option>
+                  <option value="Other">Other</option>
+                </select>
               </div>
               <div className="space-y-1">
                 <label className="text-sm text-gray-400">Nationality</label>
-                <input type="text" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.nationality} onChange={e => setFormData({...formData, nationality: e.target.value})} />
+                <input type="text" placeholder="e.g. Indian, Filipino" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.nationality} onChange={e => setFormData({...formData, nationality: e.target.value})} />
               </div>
-              <button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white p-3 rounded-lg font-medium transition-colors mt-4" disabled={isSubmitting}>
-                {isSubmitting ? 'Saving...' : 'Save Staff'}
+              <button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white p-3 rounded-xl font-medium transition-colors mt-4" disabled={isSubmitting}>
+                {isSubmitting ? 'Saving...' : (editingId ? 'Update Staff Profile' : 'Create Staff Profile')}
               </button>
             </form>
           </div>

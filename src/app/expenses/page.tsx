@@ -77,7 +77,7 @@ export default function ExpensesPage() {
                     <td className="p-4 text-gray-400">{new Date(e.created_at).toLocaleDateString()}</td>
                     <td className="p-4 font-medium">{e.description || '-'}</td>
                     <td className="p-4 text-gray-400">{e.category}</td>
-                    <td className="p-4 font-semibold text-red-500">${Number(e.amount).toLocaleString()}</td>
+                    <td className="p-4 font-semibold text-red-500">{Number(e.amount).toLocaleString()} AED</td>
                   </tr>
                 ))}
               </tbody>
@@ -95,7 +95,7 @@ export default function ExpensesPage() {
             </div>
             <form className="p-6 space-y-4" onSubmit={handleSubmit}>
               <div className="space-y-1">
-                <label className="text-sm text-gray-400">Amount ($)</label>
+                <label className="text-sm text-gray-400">Amount (AED)</label>
                 <input required type="number" step="0.01" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={amount} onChange={e => setAmount(e.target.value)} />
               </div>
               <div className="space-y-1">

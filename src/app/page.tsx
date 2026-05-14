@@ -217,7 +217,7 @@ export default function Dashboard() {
                 </select>
               </div>
               <div className="space-y-1">
-                <label className="text-sm text-gray-400">Amount ($)</label>
+                <label className="text-sm text-gray-400">Amount (AED)</label>
                 <input required type="number" step="0.01" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)} />
               </div>
               <div className="space-y-1">
