@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
-import { Plus, X, Pencil, Trash2 } from 'lucide-react';
+import { Plus, X, Pencil, Trash2, Search, Filter } from 'lucide-react';
 
 interface Staff {
   id: string;
@@ -35,6 +35,14 @@ export default function CustomersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Filters state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterNationality, setFilterNationality] = useState('');
+  const [filterMalayali, setFilterMalayali] = useState(''); // '', 'true', 'false'
+  const [filterRepeat, setFilterRepeat] = useState(''); // '', 'true'
+  const [filterSpending, setFilterSpending] = useState(''); // '', 'High', 'Medium', 'Low'
+  const [filterBehavior, setFilterBehavior] = useState(''); // '', 'Regular', 'VIP', 'Needs Attention', 'General'
   
   const [formData, setFormData] = useState({
     name: '', number: '', nationality: '', age: '', body_size: '',
@@ -44,12 +52,22 @@ export default function CustomersPage() {
   });
 
   const fetchCustomers = () => {
-    fetch('/api/customers')
+    setLoading(true);
+    const params = new URLSearchParams();
+    if (searchQuery) params.append('search', searchQuery);
+    if (filterNationality) params.append('nationality', filterNationality);
+    if (filterMalayali) params.append('malayali', filterMalayali);
+    if (filterRepeat) params.append('isRepeat', filterRepeat);
+    if (filterSpending) params.append('spending', filterSpending);
+    if (filterBehavior) params.append('behavior', filterBehavior);
+
+    fetch(`/api/customers?${params.toString()}`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) setCustomers(data);
         setLoading(false);
-      });
+      })
+      .catch(() => setLoading(false));
   };
 
   const fetchStaff = () => {
@@ -61,9 +79,16 @@ export default function CustomersPage() {
   };
 
   useEffect(() => {
-    fetchCustomers();
     fetchStaff();
   }, []);
+
+  // Debounced search and filter effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchCustomers();
+    }, 400); // 400ms debounce
+    return () => clearTimeout(timer);
+  }, [searchQuery, filterNationality, filterMalayali, filterRepeat, filterSpending, filterBehavior]);
 
   const openModal = (customer?: Customer) => {
     if (customer) {
@@ -87,7 +112,7 @@ export default function CustomersPage() {
       setEditingId(null);
       setFormData({
         name: '', number: '', nationality: '', age: '', body_size: '',
-        behavior: '', ethnicity_category: 'Others', appointment_date_time: '',
+        behavior: 'General', ethnicity_category: 'Others', appointment_date_time: '',
         is_repeat: false, call_notification: 'OK', total_paid_amount: '',
         amount_paid_to_staff: '', staff_name: ''
       });
@@ -170,6 +195,77 @@ export default function CustomersPage() {
             <button onClick={() => openModal()} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
               <Plus size={16} /> Add Customer
             </button>
+          </div>
+        </div>
+
+        {/* Filter and Search Bar */}
+        <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-4 mb-6 flex flex-col gap-4">
+          <div className="flex items-center bg-[#111] border border-white/10 rounded-xl px-4 py-3">
+            <Search size={18} className="text-gray-400 mr-3" />
+            <input 
+              type="text" 
+              placeholder="Search by name or phone number..." 
+              className="bg-transparent border-none text-white w-full focus:outline-none" 
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+            />
+          </div>
+          
+          <div className="flex gap-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Filter size={14} className="text-gray-400" />
+              <span className="text-sm text-gray-400 font-medium">Filters:</span>
+            </div>
+            
+            <input 
+              type="text" 
+              placeholder="Nationality" 
+              className="bg-[#111] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500 w-32" 
+              value={filterNationality}
+              onChange={e => setFilterNationality(e.target.value)}
+            />
+
+            <select 
+              className="bg-[#111] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500"
+              value={filterMalayali}
+              onChange={e => setFilterMalayali(e.target.value)}
+            >
+              <option value="">All Ethnicities</option>
+              <option value="true">Malayali Only</option>
+              <option value="false">Non-Malayali</option>
+            </select>
+
+            <select 
+              className="bg-[#111] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500"
+              value={filterSpending}
+              onChange={e => setFilterSpending(e.target.value)}
+            >
+              <option value="">All Spending</option>
+              <option value="High">High (&gt;10k AED)</option>
+              <option value="Medium">Medium (2.5k-10k)</option>
+              <option value="Low">Low (&lt;2.5k AED)</option>
+            </select>
+
+            <select 
+              className="bg-[#111] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500"
+              value={filterBehavior}
+              onChange={e => setFilterBehavior(e.target.value)}
+            >
+              <option value="">All Behaviors</option>
+              <option value="Regular">Regular</option>
+              <option value="VIP">VIP</option>
+              <option value="Needs Attention">Needs Attention</option>
+              <option value="General">General</option>
+            </select>
+
+            <select 
+              className="bg-[#111] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500"
+              value={filterRepeat}
+              onChange={e => setFilterRepeat(e.target.value)}
+            >
+              <option value="">All Clients</option>
+              <option value="true">Repeat Customers</option>
+            </select>
           </div>
         </div>
 
@@ -272,7 +368,12 @@ export default function CustomersPage() {
               </div>
               <div className="space-y-1">
                 <label className="text-sm text-gray-400">Behavior</label>
-                <input type="text" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.behavior} onChange={e => setFormData({...formData, behavior: e.target.value})} />
+                <select className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.behavior} onChange={e => setFormData({...formData, behavior: e.target.value})}>
+                  <option value="General">General</option>
+                  <option value="Regular">Regular</option>
+                  <option value="VIP">VIP</option>
+                  <option value="Needs Attention">Needs Attention</option>
+                </select>
               </div>
 
               {/* Categorization */}

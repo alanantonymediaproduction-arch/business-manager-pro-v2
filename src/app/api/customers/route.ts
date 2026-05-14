@@ -1,14 +1,21 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // Fetch customers with their related financial records (RLS ensures they only see their own financial records)
-    const { data: customers, error } = await supabase
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get('search') || '';
+    const nationality = searchParams.get('nationality') || '';
+    const malayali = searchParams.get('malayali'); // 'true' or 'false'
+    const isRepeat = searchParams.get('isRepeat'); // 'true' or 'false'
+    const behavior = searchParams.get('behavior') || '';
+    const spending = searchParams.get('spending') || ''; // 'High', 'Medium', 'Low'
+
+    let query = supabase
       .from('customers')
       .select(`
         *,
@@ -16,15 +23,34 @@ export async function GET() {
       `)
       .order('created_at', { ascending: false });
 
+    if (search) {
+      query = query.or(`name.ilike.%${search}%,number.ilike.%${search}%`);
+    }
+    if (nationality) {
+      query = query.ilike('nationality', `%${nationality}%`);
+    }
+    if (malayali === 'true') {
+      query = query.eq('ethnicity_category', 'Malayali');
+    } else if (malayali === 'false') {
+      query = query.neq('ethnicity_category', 'Malayali');
+    }
+    if (isRepeat === 'true') {
+      query = query.eq('is_repeat', true);
+    }
+    if (behavior) {
+      query = query.eq('behavior', behavior);
+    }
+
+    const { data: customers, error } = await query;
+
     if (error) throw error;
 
-    // Map financial records back to the flat format the UI expects for this specific user
-    const formattedCustomers = customers.map(c => {
+    // Map financial records back to the flat format the UI expects
+    let formattedCustomers = (customers || []).map(c => {
       const records = c.financial_records || [];
       const total_paid_amount = records.filter((r: { type: string, amount: string | number }) => r.type === 'Earning').reduce((sum: number, r: { amount: string | number }) => sum + Number(r.amount), 0);
       const amount_paid_to_staff = records.filter((r: { type: string, amount: string | number }) => r.type === 'Commission').reduce((sum: number, r: { amount: string | number }) => sum + Number(r.amount), 0);
       
-      // Determine staff_name (we just take the first commission staff name if it exists)
       const staff_name = records.find((r: { type: string, staff_name: string }) => r.type === 'Commission')?.staff_name || null;
 
       return {
@@ -34,6 +60,16 @@ export async function GET() {
         staff_name
       };
     });
+
+    // Post-aggregation spending filter
+    if (spending) {
+      formattedCustomers = formattedCustomers.filter(c => {
+        if (spending === 'High') return c.total_paid_amount >= 10000;
+        if (spending === 'Medium') return c.total_paid_amount >= 2500 && c.total_paid_amount < 10000;
+        if (spending === 'Low') return c.total_paid_amount < 2500;
+        return true;
+      });
+    }
 
     return NextResponse.json(formattedCustomers);
   } catch (error) {
