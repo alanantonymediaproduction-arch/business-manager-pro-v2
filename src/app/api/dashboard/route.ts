@@ -20,6 +20,9 @@ export async function GET(request: Request) {
     if (linkedStaff) {
       earningsQuery = earningsQuery.eq('linked_staff_name', linkedStaff);
       commissionsQuery = commissionsQuery.eq('linked_staff_name', linkedStaff);
+    } else {
+      earningsQuery = earningsQuery.neq('linked_staff_name', 'Deepa');
+      commissionsQuery = commissionsQuery.neq('linked_staff_name', 'Deepa');
     }
 
     const [

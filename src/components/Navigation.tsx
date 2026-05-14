@@ -28,6 +28,9 @@ export default function Navigation() {
         <Link href="/" className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md transition-colors ${pathname === '/' ? 'text-white bg-white/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
           <LayoutDashboard size={16} /> Dashboard
         </Link>
+        <Link href="/dashboard/deepa" className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md transition-colors ${pathname === '/dashboard/deepa' ? 'text-white bg-red-600' : 'text-red-400 hover:text-white hover:bg-red-600/50'}`}>
+          <LayoutDashboard size={16} /> Deepa Dashboard
+        </Link>
         <Link href="/customers" className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md transition-colors ${pathname === '/customers' ? 'text-white bg-white/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
           <Users size={16} /> Customers
         </Link>
