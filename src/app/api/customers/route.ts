@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
 
 export async function GET() {
   try {
-    const customers = await prisma.customer.findMany({
-      orderBy: { createdAt: 'desc' }
-    });
-    return NextResponse.json(customers);
+    const { data: customers, error } = await supabase
+      .from('customers')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return NextResponse.json(customers || []);
   } catch (error) {
     console.error('Failed to fetch customers:', error);
     return NextResponse.json({ error: 'Failed to fetch customers' }, { status: 500 });
@@ -16,20 +19,29 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, phone, status } = body;
+    const { 
+      name, number, nationality, age, body_size, behavior, 
+      ethnicity_category, appointment_date_time, is_repeat, call_notification 
+    } = body;
 
-    if (!name) {
-      return NextResponse.json({ error: 'Name is required' }, { status: 400 });
+    if (!name || !number) {
+      return NextResponse.json({ error: 'Name and number are required' }, { status: 400 });
     }
 
-    const newCustomer = await prisma.customer.create({
-      data: { name, email, phone, status: status || 'Active' }
-    });
+    const { data: newCustomer, error } = await supabase
+      .from('customers')
+      .insert([{
+        name, number, nationality, age: parseInt(age) || null, body_size, behavior,
+        ethnicity_category, appointment_date_time: appointment_date_time || null, 
+        is_repeat: is_repeat || false, call_notification
+      }])
+      .select()
+      .single();
 
+    if (error) throw error;
     return NextResponse.json(newCustomer);
   } catch (error) {
     console.error('Failed to create customer:', error);
-    // Vercel fallback
-    return NextResponse.json({ id: 'temp-id', ...await request.json(), createdAt: new Date() }, { status: 200 });
+    return NextResponse.json({ error: 'Failed to create customer' }, { status: 500 });
   }
 }

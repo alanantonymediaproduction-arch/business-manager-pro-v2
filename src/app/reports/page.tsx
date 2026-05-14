@@ -3,59 +3,39 @@
 import { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import styles from '../customers/page.module.css'; // Reusing general container CSS
 
 export default function ReportsPage() {
   const [data, setData] = useState<{name: string, value: number}[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // For reports, we reuse the dashboard chart data to show activity
     fetch('/api/dashboard')
       .then(res => res.json())
       .then(json => {
         setData(json.chartData || []);
         setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
       });
   }, []);
 
   return (
-    <div className={styles.container}>
+    <div className="min-h-screen bg-black text-white">
       <Navigation />
-      <main className={styles.main}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>Detailed Reports</h1>
+      <main className="p-8 max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-semibold">Detailed Reports</h1>
         </div>
 
-        <div className={styles.tableCard} style={{ padding: '2rem' }}>
-          <h2 style={{ fontSize: '1.25rem', marginBottom: '1.5rem', fontWeight: 600 }}>Weekly Earnings Analysis</h2>
+        <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-8">
+          <h2 className="text-xl font-semibold mb-6">Weekly Earnings Analysis</h2>
           {loading ? (
-            <div style={{ textAlign: 'center', color: 'var(--muted-foreground)' }}>Loading report data...</div>
+            <div className="text-center text-gray-400">Loading report data...</div>
           ) : (
-            <div style={{ width: '100%', height: 400 }}>
+            <div className="w-full h-[400px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <XAxis 
-                    dataKey="name" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#a0a0a0', fontSize: 12 }} 
-                    dy={10}
-                  />
-                  <YAxis 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#a0a0a0', fontSize: 12 }}
-                    tickFormatter={(value) => `$${value / 1000}k`}
-                  />
-                  <Tooltip 
-                    cursor={{ fill: 'transparent' }}
-                    contentStyle={{ backgroundColor: '#1c1c1c', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff' }}
-                  />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#a0a0a0', fontSize: 12 }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#a0a0a0', fontSize: 12 }} tickFormatter={(val) => `$${val / 1000}k`} />
+                  <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ backgroundColor: '#1c1c1c', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff' }} />
                   <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                     {data.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.name === new Date().toLocaleDateString('en-US', { weekday: 'short' }) ? '#e53935' : '#404040'} />

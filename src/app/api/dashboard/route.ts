@@ -1,115 +1,88 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const { searchParams } = new URL(request.url);
+    const linkedStaff = searchParams.get('linked_staff_name'); // For Deepa's Dashboard
 
-    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    // Today's boundaries
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
 
-    // Fetch Today's Earnings
-    const todayEarnings = await prisma.earning.aggregate({
-      _sum: { amount: true },
-      where: { date: { gte: today } }
-    });
+    let earningsQuery = supabase.from('earnings').select('*');
+    let expensesQuery = supabase.from('expenses').select('*');
+    let commissionsQuery = supabase.from('commissions').select('*');
+    let paymentsQuery = supabase.from('payments').select('id', { count: 'exact' }).eq('status', 'pending');
 
-    // Fetch Today's Commissions
-    const todayCommissions = await prisma.commission.aggregate({
-      _sum: { amount: true },
-      where: { date: { gte: today } }
-    });
+    if (linkedStaff) {
+      earningsQuery = earningsQuery.eq('linked_staff_name', linkedStaff);
+      commissionsQuery = commissionsQuery.eq('linked_staff_name', linkedStaff);
+    }
 
-    // Fetch Total Earnings (This Month)
-    const totalEarnings = await prisma.earning.aggregate({
-      _sum: { amount: true },
-      where: { date: { gte: firstDayOfMonth } }
-    });
+    const [
+      { data: earnings, error: err1 },
+      { data: expenses, error: err2 },
+      { data: commissions, error: err3 },
+      { count: pendingPaymentsCount, error: err4 }
+    ] = await Promise.all([
+      earningsQuery,
+      expensesQuery,
+      commissionsQuery,
+      paymentsQuery
+    ]);
 
-    // Fetch Total Commissions (This Month)
-    const totalCommissions = await prisma.commission.aggregate({
-      _sum: { amount: true },
-      where: { date: { gte: firstDayOfMonth } }
-    });
+    if (err1 || err2 || err3 || err4) throw new Error('Failed fetching from Supabase');
 
-    // Fetch Today's Expenses
-    const todayExpenses = await prisma.expense.aggregate({
-      _sum: { amount: true },
-      where: { date: { gte: today } }
-    });
+    const safeEarnings = earnings || [];
+    const safeExpenses = expenses || [];
+    const safeCommissions = commissions || [];
 
-    // Fetch Pending Payments count
-    const pendingPaymentsCount = await prisma.payment.count({
-      where: { status: 'pending' }
-    });
-
-    // Net Profit calculation
-    const currentEarnings = totalEarnings._sum.amount || 0;
-    const currentCommissions = totalCommissions._sum.amount || 0;
-    const totalExpenses = await prisma.expense.aggregate({
-      _sum: { amount: true },
-      where: { date: { gte: firstDayOfMonth } }
-    });
-    const currentExpenses = totalExpenses._sum.amount || 0;
-    const netProfit = currentEarnings - currentCommissions - currentExpenses;
-
-    // Fetch Chart Data (last 7 days earnings)
-    const sevenDaysAgo = new Date(today);
-    sevenDaysAgo.setDate(today.getDate() - 6);
-
-    const earningsLast7Days = await prisma.earning.findMany({
-      where: { date: { gte: sevenDaysAgo } },
-      orderBy: { date: 'asc' }
-    });
-
-    // Format chart data
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const chartData = [];
+    const todayEarnings = safeEarnings.filter(e => new Date(e.created_at) >= startOfDay && new Date(e.created_at) <= endOfDay)
+                                     .reduce((sum, e) => sum + Number(e.amount), 0);
+    const totalEarnings = safeEarnings.reduce((sum, e) => sum + Number(e.amount), 0);
     
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(sevenDaysAgo);
-      d.setDate(sevenDaysAgo.getDate() + i);
-      const dayName = days[d.getDay()];
-      
-      const dayEarnings = earningsLast7Days
-        .filter(e => new Date(e.date).toDateString() === d.toDateString())
-        .reduce((sum, e) => sum + e.amount, 0);
+    const todayExpenses = safeExpenses.filter(e => new Date(e.created_at) >= startOfDay && new Date(e.created_at) <= endOfDay)
+                                     .reduce((sum, e) => sum + Number(e.amount), 0);
+                                     
+    const todayCommissions = safeCommissions.filter(e => new Date(e.created_at) >= startOfDay && new Date(e.created_at) <= endOfDay)
+                                           .reduce((sum, e) => sum + Number(e.amount), 0);
+    const totalCommissions = safeCommissions.reduce((sum, e) => sum + Number(e.amount), 0);
 
-      chartData.push({ name: dayName, value: dayEarnings });
+    const netProfit = totalEarnings - (safeExpenses.reduce((sum, e) => sum + Number(e.amount), 0)) - totalCommissions;
+
+    // Generate chart data for last 7 days
+    const chartData = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dayStart = new Date(d); dayStart.setHours(0,0,0,0);
+      const dayEnd = new Date(d); dayEnd.setHours(23,59,59,999);
+      
+      const dayTotal = safeEarnings
+        .filter(e => new Date(e.created_at) >= dayStart && new Date(e.created_at) <= dayEnd)
+        .reduce((sum, e) => sum + Number(e.amount), 0);
+        
+      chartData.push({
+        name: d.toLocaleDateString('en-US', { weekday: 'short' }),
+        value: dayTotal
+      });
     }
 
     return NextResponse.json({
-      todayEarnings: todayEarnings._sum.amount || 0,
-      todayCommissions: todayCommissions._sum.amount || 0,
-      totalEarnings: currentEarnings,
-      totalCommissions: currentCommissions,
-      todayExpenses: todayExpenses._sum.amount || 0,
-      pendingPayments: pendingPaymentsCount,
-      netProfit: netProfit,
-      chartData: chartData
+      todayEarnings,
+      todayCommissions,
+      totalEarnings,
+      totalCommissions,
+      todayExpenses,
+      pendingPayments: pendingPaymentsCount || 0,
+      netProfit,
+      chartData
     });
   } catch (error) {
     console.error('Failed to fetch dashboard data:', error);
-    
-    // Fallback mock data for Vercel Serverless environment where SQLite might fail
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const today = new Date();
-    const fallbackChartData = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(today);
-      d.setDate(today.getDate() - i);
-      fallbackChartData.push({ name: days[d.getDay()], value: Math.floor(Math.random() * 10000) + 3000 });
-    }
-
-    return NextResponse.json({
-      todayEarnings: 12450,
-      todayCommissions: 3120,
-      totalEarnings: 145200,
-      totalCommissions: 28400,
-      todayExpenses: 1105,
-      pendingPayments: 12,
-      netProfit: 8420,
-      chartData: fallbackChartData
-    });
+    return NextResponse.json({ error: 'Failed to fetch data' }, { status: 500 });
   }
 }

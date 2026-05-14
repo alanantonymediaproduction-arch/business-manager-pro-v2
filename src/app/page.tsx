@@ -1,21 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  Search,
-  Banknote,
-  Tag,
-  Building2,
-  Trophy,
-  TrendingUp,
-  MoreVertical,
-  Plus,
-  Hourglass,
-  ReceiptText,
-  X
-} from 'lucide-react';
+import { Search, Banknote, Tag, Building2, Trophy, TrendingUp, MoreVertical, Plus, Hourglass, ReceiptText, X } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import styles from './page.module.css';
 import Navigation from '@/components/Navigation';
 
 interface DashboardData {
@@ -43,12 +30,8 @@ export default function Dashboard() {
   useEffect(() => {
     fetch('/api/dashboard')
       .then(res => res.json())
-      .then((json) => {
+      .then(json => {
         setData(json);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Error fetching data:', err);
         setLoading(false);
       });
   }, []);
@@ -65,7 +48,6 @@ export default function Dashboard() {
       });
       
       if (response.ok) {
-        // Optimistic UI Update for immediate feedback (especially useful on Vercel read-only FS)
         const amt = parseFloat(amount);
         setData(prev => {
           if (!prev) return prev;
@@ -77,121 +59,89 @@ export default function Dashboard() {
             netProfit: type === 'earning' ? prev.netProfit + amt : prev.netProfit - amt
           };
         });
-        
         setIsModalOpen(false);
-        setAmount('');
-        setDescription('');
-      } else {
-        alert('Failed to add transaction. (Note: Writes do not persist on Vercel preview)');
+        setAmount(''); setDescription('');
       }
-    } catch (error) {
-      console.error(error);
-      alert('Error submitting data');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   if (loading || !data) {
-    return <div className={styles.container} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>;
+    return <div className="min-h-screen bg-black text-white flex items-center justify-center">Loading...</div>;
   }
 
   return (
-    <div className={styles.container}>
+    <div className="min-h-screen bg-black text-white">
       <Navigation />
 
-      {/* Main Content */}
-      <main className={styles.main}>
-        <div className={styles.topSection}>
-          <div className={styles.welcome}>
-            <h1>Welcome back</h1>
-            <p>Here's your high-level overview for today.</p>
+      <main className="p-8 max-w-7xl mx-auto">
+        <div className="flex justify-between items-end mb-8">
+          <div>
+            <h1 className="text-3xl font-semibold mb-1">Welcome back</h1>
+            <p className="text-gray-400 text-sm">Here's your high-level overview for today.</p>
           </div>
-          <div className={styles.searchBox}>
-            <Search size={16} className={styles.searchIcon} />
-            <input type="text" placeholder="Quick search..." className={styles.searchInput} />
+          <div className="flex items-center bg-[#1c1c1c] border border-white/10 rounded-lg px-4 py-2 w-64">
+            <Search size={16} className="text-gray-400 mr-2" />
+            <input type="text" placeholder="Quick search..." className="bg-transparent border-none text-white w-full text-sm focus:outline-none" />
           </div>
         </div>
 
         {/* KPI Grid */}
-        <div className={styles.kpiGrid}>
-          <div className={styles.kpiCard}>
-            <div className={styles.kpiHeader}>
-              <span className={styles.kpiTitle}>Today Earnings</span>
-              <Banknote size={16} className={styles.kpiIcon} />
+        <div className="grid grid-cols-4 gap-6 mb-8">
+          <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-6 flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-gray-400 text-sm font-medium">Today Earnings</span>
+              <Banknote size={16} className="text-gray-400" />
             </div>
-            <div className={styles.kpiValue}>${data.todayEarnings.toLocaleString()}</div>
-            <div className={styles.kpiFooter}>
-              <TrendingUp size={12} className={styles.positive} />
-              <span className={styles.positive}>+14.5%</span>
-            </div>
-          </div>
-
-          <div className={styles.kpiCard}>
-            <div className={styles.kpiHeader}>
-              <span className={styles.kpiTitle}>Today Commissions</span>
-              <Tag size={16} className={styles.kpiIcon} />
-            </div>
-            <div className={styles.kpiValue}>${data.todayCommissions.toLocaleString()}</div>
-            <div className={styles.kpiFooter}>
-              <TrendingUp size={12} className={styles.positive} />
-              <span className={styles.positive}>+5.2%</span>
+            <div className="text-3xl font-semibold mb-2">${data.todayEarnings.toLocaleString()}</div>
+            <div className="text-xs flex items-center gap-1 text-green-500">
+              <TrendingUp size={12} /> <span>+14.5%</span>
             </div>
           </div>
-
-          <div className={styles.kpiCard}>
-            <div className={styles.kpiHeader}>
-              <span className={styles.kpiTitle}>Total Earnings</span>
-              <Building2 size={16} className={styles.kpiIcon} />
+          <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-6 flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-gray-400 text-sm font-medium">Today Commissions</span>
+              <Tag size={16} className="text-gray-400" />
             </div>
-            <div className={styles.kpiValue}>${(data.totalEarnings / 1000).toFixed(1)}K</div>
-            <div className={styles.kpiFooter}>
-              <span className={styles.neutral}>🗓 This Month</span>
+            <div className="text-3xl font-semibold mb-2">${data.todayCommissions.toLocaleString()}</div>
+            <div className="text-xs flex items-center gap-1 text-green-500">
+              <TrendingUp size={12} /> <span>+5.2%</span>
             </div>
           </div>
-
-          <div className={styles.kpiCard}>
-            <div className={styles.kpiHeader}>
-              <span className={styles.kpiTitle}>Total Commissions</span>
-              <Trophy size={16} className={styles.kpiIcon} />
+          <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-6 flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-gray-400 text-sm font-medium">Total Earnings</span>
+              <Building2 size={16} className="text-gray-400" />
             </div>
-            <div className={styles.kpiValue}>${(data.totalCommissions / 1000).toFixed(1)}K</div>
-            <div className={styles.kpiFooter}>
-              <span className={styles.neutral}>🗓 This Month</span>
+            <div className="text-3xl font-semibold mb-2">${(data.totalEarnings / 1000).toFixed(1)}K</div>
+            <div className="text-xs flex items-center gap-1 text-gray-500">🗓 This Month</div>
+          </div>
+          <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-6 flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-gray-400 text-sm font-medium">Total Commissions</span>
+              <Trophy size={16} className="text-gray-400" />
             </div>
+            <div className="text-3xl font-semibold mb-2">${(data.totalCommissions / 1000).toFixed(1)}K</div>
+            <div className="text-xs flex items-center gap-1 text-gray-500">🗓 This Month</div>
           </div>
         </div>
 
         {/* Content Grid */}
-        <div className={styles.contentGrid}>
-          {/* Main Chart */}
-          <div className={styles.chartCard}>
-            <div className={styles.chartHeader}>
-              <span className={styles.chartTitle}>Daily Earnings Overview</span>
-              <button className={styles.iconBtn}>
+        <div className="grid grid-cols-3 gap-6">
+          <div className="col-span-2 bg-[#1c1c1c] border border-white/10 rounded-2xl p-6">
+            <div className="flex justify-between items-center mb-8">
+              <span className="text-lg font-semibold">Daily Earnings Overview</span>
+              <button className="text-gray-400 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors">
                 <MoreVertical size={20} />
               </button>
             </div>
-            <div style={{ width: '100%', height: 300 }}>
+            <div className="w-full h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <XAxis 
-                    dataKey="name" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#a0a0a0', fontSize: 12 }} 
-                    dy={10}
-                  />
-                  <YAxis 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#a0a0a0', fontSize: 12 }}
-                    tickFormatter={(value) => `${value / 1000}k`}
-                  />
-                  <Tooltip 
-                    cursor={{ fill: 'transparent' }}
-                    contentStyle={{ backgroundColor: '#1c1c1c', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff' }}
-                  />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#a0a0a0', fontSize: 12 }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#a0a0a0', fontSize: 12 }} tickFormatter={(val) => `${val / 1000}k`} />
+                  <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ backgroundColor: '#1c1c1c', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff' }} />
                   <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                     {data.chartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.name === new Date().toLocaleDateString('en-US', { weekday: 'short' }) ? '#e53935' : '#404040'} />
@@ -202,35 +152,32 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Side Cards */}
-          <div className={styles.sideCards}>
-            <div className={styles.sideCard}>
-              <div className={styles.sideCardLeft}>
-                <span className={styles.sideCardTitle}>Net Profit</span>
-                <span className={styles.sideCardValue}>${data.netProfit.toLocaleString()}</span>
+          <div className="flex flex-col gap-6">
+            <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-5 flex justify-between items-center">
+              <div className="flex flex-col gap-1">
+                <span className="text-gray-400 text-sm">Net Profit</span>
+                <span className="text-2xl font-semibold">${data.netProfit.toLocaleString()}</span>
               </div>
-              <div className={styles.sideCardIcon}>
-                <TrendingUp size={20} />
-              </div>
-            </div>
-
-            <div className={styles.sideCard}>
-              <div className={styles.sideCardLeft}>
-                <span className={styles.sideCardTitle}>Today Expenses</span>
-                <span className={styles.sideCardValue}>${data.todayExpenses.toLocaleString()}</span>
-              </div>
-              <div className={styles.sideCardIcon}>
-                <ReceiptText size={20} />
+              <div className="bg-white/10 w-10 h-10 rounded-lg flex justify-center items-center">
+                <TrendingUp size={20} className="text-white" />
               </div>
             </div>
-
-            <div className={styles.sideCard}>
-              <div className={styles.sideCardLeft}>
-                <span className={styles.sideCardTitle}>Pending Payments</span>
-                <span className={styles.sideCardValue}>{data.pendingPayments}</span>
+            <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-5 flex justify-between items-center">
+              <div className="flex flex-col gap-1">
+                <span className="text-gray-400 text-sm">Today Expenses</span>
+                <span className="text-2xl font-semibold">${data.todayExpenses.toLocaleString()}</span>
               </div>
-              <div className={styles.sideCardIcon}>
-                <Hourglass size={20} />
+              <div className="bg-white/10 w-10 h-10 rounded-lg flex justify-center items-center">
+                <ReceiptText size={20} className="text-white" />
+              </div>
+            </div>
+            <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-5 flex justify-between items-center">
+              <div className="flex flex-col gap-1">
+                <span className="text-gray-400 text-sm">Pending Payments</span>
+                <span className="text-2xl font-semibold">{data.pendingPayments}</span>
+              </div>
+              <div className="bg-white/10 w-10 h-10 rounded-lg flex justify-center items-center">
+                <Hourglass size={20} className="text-white" />
               </div>
             </div>
           </div>
@@ -238,55 +185,35 @@ export default function Dashboard() {
       </main>
 
       {/* FAB */}
-      <button className={styles.fab} onClick={() => setIsModalOpen(true)}>
+      <button className="fixed bottom-8 right-8 w-14 h-14 bg-red-600 text-white rounded-full flex justify-center items-center shadow-[0_4px_12px_rgba(229,57,53,0.4)] hover:bg-red-700 hover:scale-105 transition-all z-40" onClick={() => setIsModalOpen(true)}>
         <Plus size={24} />
       </button>
 
-      {/* Data Submission Modal */}
+      {/* Add Transaction Modal */}
       {isModalOpen && (
-        <div className={styles.modalOverlay} onClick={() => setIsModalOpen(false)}>
-          <div className={styles.modal} onClick={e => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <h2>Add Transaction</h2>
-              <button className={styles.closeBtn} onClick={() => setIsModalOpen(false)}>
-                <X size={20} />
-              </button>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center z-50 p-4" onClick={() => setIsModalOpen(false)}>
+          <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
+            <div className="p-6 border-b border-white/10 flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Add Transaction</h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white"><X size={20} /></button>
             </div>
-            <form className={styles.modalBody} onSubmit={handleSubmit}>
-              <div className={styles.inputGroup}>
-                <label>Type</label>
-                <select 
-                  className={styles.select} 
-                  value={type} 
-                  onChange={(e) => setType(e.target.value)}
-                >
+            <form className="p-6 space-y-4" onSubmit={handleSubmit}>
+              <div className="space-y-1">
+                <label className="text-sm text-gray-400">Type</label>
+                <select className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={type} onChange={e => setType(e.target.value)}>
                   <option value="earning">Earning</option>
                   <option value="expense">Expense</option>
                 </select>
               </div>
-              <div className={styles.inputGroup}>
-                <label>Amount ($)</label>
-                <input 
-                  type="number" 
-                  className={styles.input} 
-                  placeholder="0.00" 
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  required 
-                />
+              <div className="space-y-1">
+                <label className="text-sm text-gray-400">Amount ($)</label>
+                <input required type="number" step="0.01" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)} />
               </div>
-              <div className={styles.inputGroup}>
-                <label>Description</label>
-                <input 
-                  type="text" 
-                  className={styles.input} 
-                  placeholder="e.g., Client Payment" 
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  required 
-                />
+              <div className="space-y-1">
+                <label className="text-sm text-gray-400">Description</label>
+                <input required type="text" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" placeholder="e.g. Client Payment" value={description} onChange={e => setDescription(e.target.value)} />
               </div>
-              <button type="submit" className={styles.submitBtn} disabled={isSubmitting}>
+              <button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white p-3 rounded-lg font-medium transition-colors mt-4" disabled={isSubmitting}>
                 {isSubmitting ? 'Saving...' : 'Save Transaction'}
               </button>
             </form>

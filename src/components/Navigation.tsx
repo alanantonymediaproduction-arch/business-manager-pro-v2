@@ -11,40 +11,39 @@ import {
   BarChart3, 
   Bell 
 } from 'lucide-react';
-import styles from './Navigation.module.css';
 
 export default function Navigation() {
   const pathname = usePathname();
 
   return (
-    <header className={styles.header}>
-      <div className={styles.headerLeft}>
-        <div className={styles.avatar}>
+    <header className="flex justify-between items-center p-5 px-8 border-b border-white/10 bg-[#1c1c1c]">
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 rounded-full bg-white/10 flex justify-center items-center overflow-hidden">
           <Image src="/next.svg" alt="User" width={32} height={32} style={{ opacity: 0.5 }} />
         </div>
-        <span className={styles.brand}>Business Manager Pro</span>
+        <span className="text-lg font-semibold text-white">Business Manager Pro</span>
       </div>
       
-      <nav className={styles.nav}>
-        <Link href="/" className={`${styles.navItem} ${pathname === '/' ? styles.active : ''}`}>
+      <nav className="flex gap-6">
+        <Link href="/" className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md transition-colors ${pathname === '/' ? 'text-white bg-white/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
           <LayoutDashboard size={16} /> Dashboard
         </Link>
-        <Link href="/customers" className={`${styles.navItem} ${pathname === '/customers' ? styles.active : ''}`}>
+        <Link href="/customers" className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md transition-colors ${pathname === '/customers' ? 'text-white bg-white/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
           <Users size={16} /> Customers
         </Link>
-        <Link href="/staff" className={`${styles.navItem} ${pathname === '/staff' ? styles.active : ''}`}>
+        <Link href="/staff" className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md transition-colors ${pathname === '/staff' ? 'text-white bg-white/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
           <BadgeCheck size={16} /> Staff
         </Link>
-        <Link href="/expenses" className={`${styles.navItem} ${pathname === '/expenses' ? styles.active : ''}`}>
+        <Link href="/expenses" className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md transition-colors ${pathname === '/expenses' ? 'text-white bg-white/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
           <ReceiptText size={16} /> Expenses
         </Link>
-        <Link href="/reports" className={`${styles.navItem} ${pathname === '/reports' ? styles.active : ''}`}>
+        <Link href="/reports" className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md transition-colors ${pathname === '/reports' ? 'text-white bg-white/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
           <BarChart3 size={16} /> Reports
         </Link>
       </nav>
 
-      <div className={styles.headerRight}>
-        <button className={styles.iconBtn}>
+      <div className="flex items-center">
+        <button className="text-gray-400 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors">
           <Bell size={20} />
         </button>
       </div>

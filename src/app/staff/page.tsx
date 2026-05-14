@@ -3,27 +3,22 @@
 import { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import { Plus, X } from 'lucide-react';
-import styles from '../customers/page.module.css'; // Reusing table CSS
-import modalStyles from '../page.module.css'; // Reusing modal CSS
 
 interface Staff {
   id: string;
   name: string;
+  nationality: string | null;
   role: string;
-  status: string;
-  createdAt: string;
+  created_at: string;
 }
 
 export default function StaffPage() {
   const [staff, setStaff] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [name, setName] = useState('');
-  const [role, setRole] = useState('');
-  const [status, setStatus] = useState('Active');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const [formData, setFormData] = useState({ name: '', nationality: '', role: '' });
 
   useEffect(() => {
     fetch('/api/staff')
@@ -31,117 +26,88 @@ export default function StaffPage() {
       .then(data => {
         if (Array.isArray(data)) setStaff(data);
         setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
       });
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
     try {
       const response = await fetch('/api/staff', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, role, status })
+        body: JSON.stringify(formData)
       });
-      
       if (response.ok) {
         const newStaff = await response.json();
-        // Optimistic update
         setStaff(prev => [newStaff, ...prev]);
         setIsModalOpen(false);
-        setName(''); setRole(''); setStatus('Active');
       }
-    } catch (error) {
-      console.error(error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className={styles.container}>
+    <div className="min-h-screen bg-black text-white">
       <Navigation />
-      <main className={styles.main}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>Staff</h1>
-          <button className={styles.addBtn} onClick={() => setIsModalOpen(true)}>
+      <main className="p-8 max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-semibold">Staff Profiles</h1>
+          <button onClick={() => setIsModalOpen(true)} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
             <Plus size={16} /> Add Staff
           </button>
         </div>
 
-        <div className={styles.tableCard}>
+        <div className="bg-[#111] border border-white/10 rounded-2xl overflow-x-auto">
           {loading ? (
-            <div style={{ padding: '2rem', textAlign: 'center' }}>Loading staff...</div>
+            <div className="p-8 text-center text-gray-400">Loading staff...</div>
           ) : (
-            <table className={styles.table}>
+            <table className="w-full text-left border-collapse">
               <thead>
-                <tr>
-                  <th className={styles.th}>Name</th>
-                  <th className={styles.th}>Role</th>
-                  <th className={styles.th}>Status</th>
-                  <th className={styles.th}>Joined</th>
+                <tr className="border-b border-white/10 text-gray-400 text-sm">
+                  <th className="p-4 font-medium">Name</th>
+                  <th className="p-4 font-medium">Role</th>
+                  <th className="p-4 font-medium">Nationality</th>
+                  <th className="p-4 font-medium">Joined</th>
                 </tr>
               </thead>
               <tbody>
                 {staff.map(s => (
-                  <tr key={s.id} className={styles.tr}>
-                    <td className={styles.td} style={{ fontWeight: 500 }}>{s.name}</td>
-                    <td className={styles.td} style={{ color: 'var(--muted-foreground)' }}>{s.role}</td>
-                    <td className={styles.td}>
-                      <span className={s.status === 'Active' ? styles.statusActive : styles.statusInactive}>
-                        {s.status}
-                      </span>
-                    </td>
-                    <td className={styles.td} style={{ color: 'var(--muted-foreground)' }}>
-                      {new Date(s.createdAt).toLocaleDateString()}
-                    </td>
+                  <tr key={s.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                    <td className="p-4 font-medium">{s.name}</td>
+                    <td className="p-4 text-gray-400">{s.role}</td>
+                    <td className="p-4 text-gray-400">{s.nationality || '-'}</td>
+                    <td className="p-4 text-gray-400">{new Date(s.created_at).toLocaleDateString()}</td>
                   </tr>
                 ))}
-                {staff.length === 0 && !loading && (
-                  <tr>
-                    <td colSpan={4} style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted-foreground)' }}>
-                      No staff found.
-                    </td>
-                  </tr>
-                )}
               </tbody>
             </table>
           )}
         </div>
       </main>
 
-      {/* Add Staff Modal */}
       {isModalOpen && (
-        <div className={modalStyles.modalOverlay} onClick={() => setIsModalOpen(false)}>
-          <div className={modalStyles.modal} onClick={e => e.stopPropagation()}>
-            <div className={modalStyles.modalHeader}>
-              <h2>Add New Staff</h2>
-              <button className={modalStyles.closeBtn} onClick={() => setIsModalOpen(false)}>
-                <X size={20} />
-              </button>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center z-50 p-4" onClick={() => setIsModalOpen(false)}>
+          <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
+            <div className="p-6 border-b border-white/10 flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Add New Staff</h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white"><X size={20} /></button>
             </div>
-            <form className={modalStyles.modalBody} onSubmit={handleSubmit}>
-              <div className={modalStyles.inputGroup}>
-                <label>Name</label>
-                <input required type="text" className={modalStyles.input} value={name} onChange={e => setName(e.target.value)} />
+            <form className="p-6 space-y-4" onSubmit={handleSubmit}>
+              <div className="space-y-1">
+                <label className="text-sm text-gray-400">Name</label>
+                <input required type="text" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
               </div>
-              <div className={modalStyles.inputGroup}>
-                <label>Role</label>
-                <input required type="text" className={modalStyles.input} placeholder="e.g. Sales Rep" value={role} onChange={e => setRole(e.target.value)} />
+              <div className="space-y-1">
+                <label className="text-sm text-gray-400">Role</label>
+                <input required type="text" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" placeholder="e.g. Sales, Support" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} />
               </div>
-              <div className={modalStyles.inputGroup}>
-                <label>Status</label>
-                <select className={modalStyles.select} value={status} onChange={e => setStatus(e.target.value)}>
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
+              <div className="space-y-1">
+                <label className="text-sm text-gray-400">Nationality</label>
+                <input type="text" className="w-full bg-[#111] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" value={formData.nationality} onChange={e => setFormData({...formData, nationality: e.target.value})} />
               </div>
-              <button type="submit" className={modalStyles.submitBtn} disabled={isSubmitting}>
+              <button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white p-3 rounded-lg font-medium transition-colors mt-4" disabled={isSubmitting}>
                 {isSubmitting ? 'Saving...' : 'Save Staff'}
               </button>
             </form>
