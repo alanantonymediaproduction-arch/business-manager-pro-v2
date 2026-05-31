@@ -22,7 +22,8 @@ export async function GET(request: Request) {
       .select(`
         *,
         financial_records(*)
-      `);
+      `)
+      .eq('user_id', user.id);
 
     if (sort === 'latest') {
       query = query.order('created_at', { ascending: false });
@@ -100,6 +101,7 @@ export async function POST(request: Request) {
     const { data: newCustomer, error: customerError } = await supabase
       .from('customers')
       .insert([{
+        user_id: user.id,
         name, number, nationality,
         age: parseInt(age) || null,
         body_size: body_size || null,
@@ -182,6 +184,7 @@ export async function PUT(request: Request) {
         last_contact_date: new Date().toISOString()
       })
       .eq('id', id)
+      .eq('user_id', user.id)
       .select()
       .single();
 
@@ -203,7 +206,7 @@ export async function DELETE(request: Request) {
     const id = searchParams.get('id');
     if (!id) return NextResponse.json({ error: 'ID is required' }, { status: 400 });
 
-    const { error } = await supabase.from('customers').delete().eq('id', id);
+    const { error } = await supabase.from('customers').delete().eq('id', id).eq('user_id', user.id);
     if (error) throw error;
     return NextResponse.json({ success: true });
   } catch (error) {

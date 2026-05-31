@@ -1,4 +1,5 @@
 -- Supabase SQL Schema for BackupPlanPro
+-- ALL DATA IS PRIVATE PER USER (user_id isolation)
 
 -- ==========================================
 -- 1. CLEANUP PREVIOUS TABLES (If they exist)
@@ -14,7 +15,7 @@ DROP TABLE IF EXISTS expenses CASCADE;
 DROP TABLE IF EXISTS payments CASCADE;
 
 -- ==========================================
--- 2. CREATE NEW MULTI-TENANT ARCHITECTURE
+-- 2. CREATE PRIVATE MULTI-TENANT ARCHITECTURE
 -- ==========================================
 
 -- User Profiles (Linked to Supabase Auth)
@@ -26,9 +27,10 @@ CREATE TABLE profiles (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Customers Table (Shared Pool)
+-- Customers Table (PRIVATE per user)
 CREATE TABLE customers (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   name TEXT NOT NULL,
   number TEXT NOT NULL,
   nationality TEXT,
@@ -49,7 +51,7 @@ CREATE TABLE customers (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Financial Records Table (Private Silos)
+-- Financial Records Table (PRIVATE per user)
 CREATE TABLE financial_records (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
@@ -62,9 +64,10 @@ CREATE TABLE financial_records (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Staff Table
+-- Staff Table (PRIVATE per user)
 CREATE TABLE staff (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   name TEXT NOT NULL,
   nationality TEXT,
   role TEXT,
@@ -72,7 +75,7 @@ CREATE TABLE staff (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Online Services Table (Private per user)
+-- Online Services Table (PRIVATE per user)
 CREATE TABLE online_services (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
@@ -99,33 +102,33 @@ ALTER TABLE staff ENABLE ROW LEVEL SECURITY;
 ALTER TABLE online_services ENABLE ROW LEVEL SECURITY;
 
 -- ==========================================
--- 4. APPLY SECURITY POLICIES
+-- 4. ALL DATA IS PRIVATE - user_id isolation
 -- ==========================================
 
--- Shared Customer Pool Policies
-CREATE POLICY "Enable read access for all authenticated users" ON customers FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Enable insert for authenticated users" ON customers FOR INSERT WITH CHECK (auth.role() = 'authenticated');
-CREATE POLICY "Enable update for authenticated users" ON customers FOR UPDATE USING (auth.role() = 'authenticated');
-CREATE POLICY "Enable delete for authenticated users" ON customers FOR DELETE USING (auth.role() = 'authenticated');
+-- Profile Policies (own profile only)
+CREATE POLICY "Users can view their own profile" ON profiles FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can insert their own profile" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
+CREATE POLICY "Users can update their own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
 
--- Private Financial Silos Policies
+-- Customer Policies (PRIVATE per user)
+CREATE POLICY "Users can view their own customers" ON customers FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own customers" ON customers FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own customers" ON customers FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own customers" ON customers FOR DELETE USING (auth.uid() = user_id);
+
+-- Financial Records Policies (PRIVATE per user)
 CREATE POLICY "Users can view their own financial records" ON financial_records FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can insert their own financial records" ON financial_records FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can update their own financial records" ON financial_records FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "Users can delete their own financial records" ON financial_records FOR DELETE USING (auth.uid() = user_id);
 
--- Profile Policies
-CREATE POLICY "Users can view their own profile" ON profiles FOR SELECT USING (auth.uid() = id);
-CREATE POLICY "Users can insert their own profile" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
-CREATE POLICY "Users can update their own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
+-- Staff Policies (PRIVATE per user)
+CREATE POLICY "Users can view their own staff" ON staff FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own staff" ON staff FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own staff" ON staff FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own staff" ON staff FOR DELETE USING (auth.uid() = user_id);
 
--- Staff Policies (Shared)
-CREATE POLICY "Enable read access for all authenticated users on staff" ON staff FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Enable insert for authenticated users on staff" ON staff FOR INSERT WITH CHECK (auth.role() = 'authenticated');
-CREATE POLICY "Enable update for authenticated users on staff" ON staff FOR UPDATE USING (auth.role() = 'authenticated');
-CREATE POLICY "Enable delete for authenticated users on staff" ON staff FOR DELETE USING (auth.role() = 'authenticated');
-
--- Online Services Policies (Private per user)
+-- Online Services Policies (PRIVATE per user)
 CREATE POLICY "Users can view their own online services" ON online_services FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can insert their own online services" ON online_services FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can update their own online services" ON online_services FOR UPDATE USING (auth.uid() = user_id);

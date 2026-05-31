@@ -11,8 +11,8 @@ export async function GET(request: Request) {
     const tab = searchParams.get('tab') || 'active';
     const search = searchParams.get('search') || '';
 
-    // Fetch customers (physical)
-    let custQuery = supabase.from('customers').select('*').order('created_at', { ascending: false });
+    // Fetch customers (physical) — PRIVATE per user
+    let custQuery = supabase.from('customers').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
     // Fetch online services
     let onlineQuery = supabase.from('online_services').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
 
@@ -146,7 +146,7 @@ export async function PATCH(request: Request) {
 
     let query;
     if (source_table === 'customers') {
-      query = supabase.from('customers').update(updateData).eq('id', id).select().single();
+      query = supabase.from('customers').update(updateData).eq('id', id).eq('user_id', user.id).select().single();
     } else {
       query = supabase.from('online_services').update(updateData).eq('id', id).eq('user_id', user.id).select().single();
     }

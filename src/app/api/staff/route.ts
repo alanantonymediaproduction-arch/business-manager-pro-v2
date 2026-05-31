@@ -5,7 +5,7 @@ export async function GET() {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     let customPersonaName = 'Deepa';
     
     if (user) {
@@ -18,6 +18,7 @@ export async function GET() {
     const { data: staff, error } = await supabase
       .from('staff')
       .select('*')
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -97,6 +98,9 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
     const body = await request.json();
     const { name, role, nationality, phone_number } = body;
 
@@ -106,7 +110,7 @@ export async function POST(request: Request) {
 
     const { data: newStaff, error } = await supabase
       .from('staff')
-      .insert([{ name, role, nationality, phone_number: phone_number || null }])
+      .insert([{ user_id: user.id, name, role, nationality, phone_number: phone_number || null }])
       .select()
       .single();
 
@@ -133,6 +137,7 @@ export async function PUT(request: Request) {
       .from('staff')
       .update({ name, role, nationality, phone_number: phone_number || null })
       .eq('id', id)
+      .eq('user_id', user.id)
       .select()
       .single();
 
@@ -158,7 +163,8 @@ export async function DELETE(request: Request) {
     const { error } = await supabase
       .from('staff')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('user_id', user.id);
 
     if (error) throw error;
     return NextResponse.json({ success: true });
