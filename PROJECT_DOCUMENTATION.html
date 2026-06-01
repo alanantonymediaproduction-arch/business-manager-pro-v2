@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Manager Pro v2 — Project Documentation</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #333;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background-color: #fff;
+        }
+        h1 {
+            font-size: 2.2em;
+            border-bottom: 2px solid #eaecef;
+            padding-bottom: 0.3em;
+            color: #111;
+        }
+        h2 {
+            font-size: 1.5em;
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 0.3em;
+            margin-top: 2em;
+            color: #222;
+        }
+        h3 {
+            font-size: 1.25em;
+            margin-top: 1.5em;
+            color: #333;
+        }
+        p, ul, ol {
+            margin-bottom: 1em;
+        }
+        code {
+            font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+            background-color: rgba(27,31,35,0.05);
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-size: 85%;
+        }
+        pre {
+            background-color: #f6f8fa;
+            border-radius: 6px;
+            padding: 16px;
+            overflow: auto;
+            font-size: 85%;
+            line-height: 1.45;
+            border: 1px solid #e1e4e8;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            font-size: inherit;
+            color: inherit;
+            word-break: normal;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #dfe2e5;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f6f8fa;
+        }
+        .credentials-box {
+            background-color: #fff9e6;
+            border: 1px solid #ffe58f;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .credentials-box h4 {
+            margin-top: 0;
+            color: #b78103;
+        }
+        @media print {
+            body {
+                margin: 20px;
+                font-size: 12pt;
+            }
+            pre {
+                background-color: #fff;
+                border: 1px solid #ccc;
+                page-break-inside: avoid;
+            }
+            h2, h3 {
+                page-break-after: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Business Manager Pro v2 (BackupPlanPro)</h1>
+    <p><strong>Project Documentation &amp; Setup Guide</strong></p>
+    <p>Date: June 1, 2026</p>
+
+    <hr>
+
+    <h2>1. Project Overview &amp; Architecture</h2>
+    <p><strong>Business Manager Pro v2</strong> is a multi-tenant business management and dashboard application built specifically for scheduling, staff tracking, financial logging, and customer relationship management.</p>
+    
+    <h3>Technology Stack</h3>
+    <ul>
+        <li><strong>Frontend Framework</strong>: Next.js 16 (Turbopack) using React 19 and Tailwind CSS.</li>
+        <li><strong>Database Backend</strong>: Supabase PostgreSQL with Row Level Security (RLS) for complete data isolation.</li>
+        <li><strong>Deployment &amp; Hosting</strong>: Vercel (for frontend/API routes) and Supabase (for database/auth).</li>
+    </ul>
+
+    <h2>2. Live Links &amp; Repositories</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>URL / Address</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Production URL</strong></td>
+                <td><a href="https://prodaddy-business-manager.vercel.app" target="_blank">https://prodaddy-business-manager.vercel.app</a></td>
+            </tr>
+            <tr>
+                <td><strong>Alternative URL</strong></td>
+                <td><a href="https://prodaddy-business-manager-fi3bfq72r.vercel.app" target="_blank">https://prodaddy-business-manager-fi3bfq72r.vercel.app</a></td>
+            </tr>
+            <tr>
+                <td><strong>GitHub Repository</strong></td>
+                <td><code>https://github.com/alanantonymediaproduction-arch/business-manager-pro-v2.git</code></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>3. Project Credentials &amp; Environment Configuration</h2>
+    <div class="credentials-box">
+        <h4>🔒 Security Credentials (Sensitive)</h4>
+        <p><strong>Supabase URL:</strong> <code>https://iwzcjfmaetxvditminun.supabase.co</code></p>
+        <p><strong>Supabase Anon / Publishable Key:</strong> <code>sb_publishable_EXJp3M9Exin6aBEmqHpTLw_Jz3uwPSv</code></p>
+        <p><strong>GitHub Token Remote:</strong> <code>https://[YOUR_GITHUB_TOKEN]@github.com/alanantonymediaproduction-arch/business-manager-pro-v2.git</code></p>
+    </div>
+
+    <h3>Local environment configuration file (<code>.env.local</code>)</h3>
+    <p>Place this in the root of the project to run it locally:</p>
+    <pre><code>NEXT_PUBLIC_SUPABASE_URL="https://iwzcjfmaetxvditminun.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="sb_publishable_EXJp3M9Exin6aBEmqHpTLw_Jz3uwPSv"</code></pre>
+
+    <h2>4. Local Development Setup</h2>
+    <p>To run the project on your local machine, follow these steps:</p>
+    <ol>
+        <li>Navigate to the project folder:
+            <pre><code>cd "/Users/alanantony/Documents/ALAN NEW WEB"</code></pre>
+        </li>
+        <li>Install dependencies:
+            <pre><code>npm install</code></pre>
+        </li>
+        <li>Run the development server:
+            <pre><code>npm run dev</code></pre>
+        </li>
+        <li>Open in browser: Go to <a href="http://localhost:3000" target="_blank">http://localhost:3000</a></li>
+    </ol>
+
+    <h2>5. Database Schema &amp; RLS Setup</h2>
+    <p>The database uses PostgreSQL with Row Level Security (RLS) to ensure that <strong>each user's data is private and never mixed</strong>.</p>
+    <p>Copy and paste this script into the <strong>SQL Editor</strong> of your Supabase Dashboard and click <strong>Run</strong>:</p>
+    <pre><code>-- Supabase SQL Schema for BackupPlanPro
+-- ALL DATA IS PRIVATE PER USER (user_id isolation)
+
+-- 1. Create Tables
+CREATE TABLE IF NOT EXISTS profiles (
+  id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
+  full_name TEXT,
+  custom_persona_name TEXT DEFAULT 'Deepa',
+  admin_pin TEXT DEFAULT '1234',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS customers (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  name TEXT NOT NULL,
+  number TEXT NOT NULL,
+  nationality TEXT,
+  age INTEGER,
+  room_number TEXT,
+  body_size TEXT CHECK (body_size IN ('Big', 'Normal', 'Small')),
+  behavior TEXT CHECK (behavior IN ('Bad', 'Good', 'Very Good')),
+  meeting_duration TEXT CHECK (meeting_duration IN ('1 Hour', '2 Hours', '3 Hours', '4 Hours', 'More Than 5 Hours')),
+  appointment_date_time TIMESTAMP WITH TIME ZONE,
+  is_repeat BOOLEAN DEFAULT false,
+  is_mallu BOOLEAN DEFAULT false,
+  repeat_count INTEGER DEFAULT 0,
+  service_status TEXT DEFAULT 'Active' CHECK (service_status IN ('Pending', 'In Progress', 'Scheduled', 'Completed', 'Active')),
+  service_channel TEXT DEFAULT 'Physical',
+  last_contact_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  notes TEXT,
+  follow_up_agreed BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS financial_records (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  customer_id UUID REFERENCES customers(id) ON DELETE SET NULL,
+  type TEXT CHECK (type IN ('Earning', 'Commission', 'Expense')) NOT NULL,
+  amount NUMERIC NOT NULL,
+  description TEXT,
+  staff_name TEXT,
+  is_special_persona BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS staff (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  name TEXT NOT NULL,
+  nationality TEXT,
+  role TEXT,
+  phone_number TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS online_services (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  customer_name TEXT NOT NULL,
+  phone_number TEXT NOT NULL,
+  amount NUMERIC NOT NULL,
+  session_time TEXT,
+  payment_method TEXT CHECK (payment_method IN ('Cash', 'Bank Account', 'Google Pay')),
+  service_type TEXT CHECK (service_type IN ('Video Call', 'Audio Call', 'Photos + Audio', 'Video Clips + Audio')),
+  service_status TEXT DEFAULT 'Active' CHECK (service_status IN ('Pending', 'In Progress', 'Scheduled', 'Completed', 'Active')),
+  last_contact_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  notes TEXT,
+  follow_up_agreed BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 2. Enable Row Level Security (RLS)
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE financial_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE staff ENABLE ROW LEVEL SECURITY;
+ALTER TABLE online_services ENABLE ROW LEVEL SECURITY;
+
+-- 3. Create RLS Policies
+-- Profiles
+CREATE POLICY "Users can view their own profile" ON profiles FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can insert their own profile" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
+CREATE POLICY "Users can update their own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
+
+-- Customers
+CREATE POLICY "Users can view their own customers" ON customers FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own customers" ON customers FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own customers" ON customers FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own customers" ON customers FOR DELETE USING (auth.uid() = user_id);
+
+-- Financial Records
+CREATE POLICY "Users can view their own financial records" ON financial_records FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own financial records" ON financial_records FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own financial records" ON financial_records FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own financial records" ON financial_records FOR DELETE USING (auth.uid() = user_id);
+
+-- Staff
+CREATE POLICY "Users can view their own staff" ON staff FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own staff" ON staff FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own staff" ON staff FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own staff" ON staff FOR DELETE USING (auth.uid() = user_id);
+
+-- Online Services
+CREATE POLICY "Users can view their own online services" ON online_services FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own online services" ON online_services FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own online services" ON online_services FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own online services" ON online_services FOR DELETE USING (auth.uid() = user_id);</code></pre>
+
+    <h2>6. Key Feature Configurations</h2>
+    
+    <h3>1. Isolated "Deepa" Persona Logic</h3>
+    <ul>
+        <li>In <strong>Staff Profiles</strong> page:
+            <ul>
+                <li>Top summary cards ("Team Total Earnings", "Team Total Commission", "Today's Commissions") exclude stats belonging to the staff member named <code>"Deepa"</code>.</li>
+                <li>Deepa's individual box remains fully visible inside the grid, displaying her personal performance metrics.</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>2. Online Services (INR / ₹) Formatting</h3>
+    <ul>
+        <li>The virtual services section is isolated to display and calculate in <strong>INR (₹)</strong>.</li>
+        <li>Metric cards changed to <strong>Total Earnings</strong> and <strong>Avg per Session</strong> displaying in <strong>₹</strong> (INR).</li>
+        <li>Session list items display prices with the <strong>₹</strong> symbol.</li>
+        <li>Form input label for adding/editing sessions updated to <code>Amount (INR)</code>.</li>
+        <li>Physical dashboard metrics remain formatted in local <strong>AED</strong> currency.</li>
+    </ul>
+
+    <h2>7. Hosting &amp; Deployment Guide (Vercel)</h2>
+    <p>If you need to manually configure or deploy this project to another Vercel account:</p>
+    <ol>
+        <li>Install Vercel CLI:
+            <pre><code>npm install -g vercel</code></pre>
+        </li>
+        <li>Link Project:
+            <pre><code>vercel link</code></pre>
+            Select your scope, specify project name <code>prodaddy-business-manager</code>, and link it.
+        </li>
+        <li>Configure Environment Variables:
+            Go to your Vercel Dashboard -> Project Settings -> Environment Variables. Add:
+            <ul>
+                <li><code>NEXT_PUBLIC_SUPABASE_URL</code> = <code>https://iwzcjfmaetxvditminun.supabase.co</code></li>
+                <li><code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> = <code>sb_publishable_EXJp3M9Exin6aBEmqHpTLw_Jz3uwPSv</code></li>
+            </ul>
+        </li>
+        <li>Deploy:
+            <pre><code>vercel --prod</code></pre>
+        </li>
+    </ol>
+
+</body>
+</html>
