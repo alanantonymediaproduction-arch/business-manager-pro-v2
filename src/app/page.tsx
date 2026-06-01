@@ -225,8 +225,8 @@ export default function Dashboard() {
                 <div className="text-xs text-gray-500 mt-1">Sessions</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-purple-400">{(data.onlineEarnings || 0).toLocaleString()}</div>
-                <div className="text-xs text-gray-500 mt-1">Earnings (AED)</div>
+                <div className="text-2xl font-bold text-purple-400">₹{(data.onlineEarnings || 0).toLocaleString()}</div>
+                <div className="text-xs text-gray-500 mt-1">Earnings (INR)</div>
               </div>
             </div>
           </div>

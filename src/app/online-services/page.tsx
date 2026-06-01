@@ -143,11 +143,11 @@ export default function OnlineServicesPage() {
           </div>
           <div className="bg-[#1c1c1c] border border-white/10 rounded-2xl p-4">
             <span className="text-xs text-gray-400">Total Earnings</span>
-            <div className="text-2xl font-bold text-purple-400 mt-1">{totalEarnings.toLocaleString()} AED</div>
+            <div className="text-2xl font-bold text-purple-400 mt-1">₹{totalEarnings.toLocaleString()}</div>
           </div>
           <div className="hidden md:block bg-[#1c1c1c] border border-white/10 rounded-2xl p-4">
             <span className="text-xs text-gray-400">Avg per Session</span>
-            <div className="text-2xl font-bold text-cyan-400 mt-1">{services.length ? Math.round(totalEarnings / services.length).toLocaleString() : 0} AED</div>
+            <div className="text-2xl font-bold text-cyan-400 mt-1">₹{services.length ? Math.round(totalEarnings / services.length).toLocaleString() : 0}</div>
           </div>
         </div>
 
@@ -207,7 +207,7 @@ export default function OnlineServicesPage() {
                 <div className="flex justify-between items-end">
                   <div>
                     <span className="text-xs text-gray-500">Amount</span>
-                    <div className="text-lg font-bold text-purple-400">{Number(s.amount).toLocaleString()} AED</div>
+                    <div className="text-lg font-bold text-purple-400">₹{Number(s.amount).toLocaleString()}</div>
                   </div>
                   <div className="text-right text-xs text-gray-500">
                     {s.session_time && <div>⏱ {s.session_time}</div>}
@@ -234,7 +234,7 @@ export default function OnlineServicesPage() {
                 <div><label className={labelCls}>Phone Number *</label><input required type="text" className={inputCls} value={formData.phone_number} onChange={e => setFormData({...formData, phone_number: e.target.value})} /></div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div><label className={`${labelCls} text-purple-400`}>Amount (AED) *</label><input required type="number" step="0.01" className={`${inputCls} border-purple-500/30`} value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} /></div>
+                <div><label className={`${labelCls} text-purple-400`}>Amount (INR) *</label><input required type="number" step="0.01" className={`${inputCls} border-purple-500/30`} value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} /></div>
                 <div><label className={labelCls}>Session Time</label><input type="text" placeholder="e.g. 30 min, 1 hour" className={inputCls} value={formData.session_time} onChange={e => setFormData({...formData, session_time: e.target.value})} /></div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

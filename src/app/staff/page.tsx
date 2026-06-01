@@ -89,10 +89,10 @@ export default function StaffPage() {
     }
   };
 
-  // Calculate team totals
-  const teamTotalCommission = staff.reduce((sum, s) => sum + (s.totalCommission || 0), 0);
-  const teamTodayCommission = staff.reduce((sum, s) => sum + (s.todayCommission || 0), 0);
-  const teamTotalEarnings = staff.reduce((sum, s) => sum + (s.totalEarnings || 0), 0);
+  // Calculate team totals (excluding 'Deepa')
+  const teamTotalCommission = staff.reduce((sum, s) => s.name === 'Deepa' ? sum : sum + (s.totalCommission || 0), 0);
+  const teamTodayCommission = staff.reduce((sum, s) => s.name === 'Deepa' ? sum : sum + (s.todayCommission || 0), 0);
+  const teamTotalEarnings = staff.reduce((sum, s) => s.name === 'Deepa' ? sum : sum + (s.totalEarnings || 0), 0);
 
   return (
     <div className="min-h-screen bg-black text-white">
